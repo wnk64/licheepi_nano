@@ -382,6 +382,7 @@ static void musb_advance_schedule(struct musb *musb, struct urb *urb,
 		struct list_head *head = qh->ring.prev;
 
 		list_move_tail(&qh->ring, head);
+		ep->tx_reinit = 1;
 		qh = first_qh(head);
 		musb_ep_set_qh(ep, is_in, qh);
 	}
@@ -864,19 +865,12 @@ finish:
 
 			if (csr & (MUSB_RXCSR_RXPKTRDY
 					| MUSB_RXCSR_DMAENAB
-					| MUSB_RXCSR_H_REQPKT)) {
+					| MUSB_RXCSR_H_REQPKT))
 				ERR("broken !rx_reinit, ep%d csr %04x\n",
 						hw_ep->epnum, csr);
-				musb_rx_reinit(musb, qh, epnum);
-				csr = musb->io.set_toggle(qh, is_out, urb);
 
-				if (qh->type == USB_ENDPOINT_XFER_INT)
-					csr |= MUSB_RXCSR_DISNYET;
-
-			} else {
-				/* scrub any stale state, leaving toggle alone */
-				csr &= MUSB_RXCSR_DISNYET;
-			}
+			/* scrub any stale state, leaving toggle alone */
+			csr &= MUSB_RXCSR_DISNYET;
 		}
 
 		/* kick things off */
