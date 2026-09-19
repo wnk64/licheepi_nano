@@ -3756,6 +3756,7 @@ int rwnx_send_apm_start_req(struct rwnx_hw *rwnx_hw, struct rwnx_vif *vif,
     const u8 *var_pos;
     int len, i;
 
+    elem->dma_addr = 0;
     RWNX_DBG(RWNX_FN_ENTRY_STR);
 
     /* Build the APM_START_REQ message */
