@@ -794,6 +794,14 @@ int rwnx_send_key_del(struct rwnx_hw *rwnx_hw, uint8_t hw_key_idx)
 int rwnx_send_bcn(struct rwnx_hw *rwnx_hw,u8 *buf, u8 vif_idx, u16 bcn_len)
 {
 	struct apm_set_bcn_ie_req *bcn_ie_req;
+
+	if (bcn_len > sizeof(bcn_ie_req->bcn_ie)) {
+		printk(KERN_ERR "aic8800: beacon length %u exceeds IPC limit 512\n",
+		       bcn_len);
+		kfree(buf);
+		return -EMSGSIZE;
+	}
+
 	bcn_ie_req = rwnx_msg_zalloc(APM_SET_BEACON_IE_REQ, TASK_APM, DRV_TASK_ID,
 							   sizeof(struct apm_set_bcn_ie_req));
 	if (!bcn_ie_req)
@@ -3754,7 +3762,7 @@ int rwnx_send_apm_start_req(struct rwnx_hw *rwnx_hw, struct rwnx_vif *vif,
     u8 rate_len = 0;
     int var_offset = offsetof(struct ieee80211_mgmt, u.beacon.variable);
     const u8 *var_pos;
-    int len, i;
+    int len, i, error;
 
     elem->dma_addr = 0;
     RWNX_DBG(RWNX_FN_ENTRY_STR);
@@ -3806,7 +3814,11 @@ int rwnx_send_apm_start_req(struct rwnx_hw *rwnx_hw, struct rwnx_vif *vif,
         return error;
     }
     #else
-    rwnx_send_bcn(rwnx_hw, buf, vif->vif_index, bcn->len);
+    error = rwnx_send_bcn(rwnx_hw, buf, vif->vif_index, bcn->len);
+    if (error) {
+        rwnx_msg_free(rwnx_hw, req);
+        return error;
+    }
     #endif
 
     /* Set parameters for the APM_START_REQ message */
