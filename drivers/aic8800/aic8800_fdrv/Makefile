@@ -79,7 +79,7 @@ CONFIG_RX_TASKLET = n
 CONFIG_TX_TASKLET = n
 CONFIG_RX_NETIF_RECV_SKB = y
 CONFIG_BR_SUPPORT = n
-CONFIG_USB_MSG_OUT_EP = y
+CONFIG_USB_MSG_OUT_EP = n
 CONFIG_USB_MSG_IN_EP = y
 CONFIG_USB_RX_REASSEMBLE = n
 CONFIG_WOWLAN = n
@@ -409,4 +409,3 @@ uninstall:
 
 clean:
 	rm -rf *.o *.ko *.o.* *.mod.* modules.* Module.* .a* .o* .*.o.* *.mod .tmp* .cache.mk .modules.order.cmd .Module.symvers.cmd
-
