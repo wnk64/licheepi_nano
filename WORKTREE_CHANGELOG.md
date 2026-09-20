@@ -127,6 +127,8 @@ Deploy and rollback: deploy only the tracked protocol script into its isolated c
 Tests: stop local test player; verify pre-cast MemAvailable/CmaFree; start GO and FIFO player; require player log rotation=1 output=480x800, phone association, DHCP, RTSP, then test display.
 Decision: pending
 
+Result update: commit d5145b4. Cold boot #241 with source-built UGREEN dual-OUT modules reached wlan1, 5805 MHz GO, PBC, AP-STA-CONNECTED, DHCP 192.168.49.52, and complete RTSP SETUP/PLAY. Sink received 44 RTP packets / 15448 H.264 bytes. Cedar exited because its raw input was configured as 800x480 while the negotiated stream was 640x480; no OOM, CMA allocation failure, kernel panic, USB reset, or AIC disconnect occurred. A subsequent 640x480@60 GO startup lost SSH/serial control before phone connection and was recovered by COM5 cold boot. This is pending independent local 640x480 rotation validation; not accepted.
+
 ## 2026-09-21 / planned / PBC 超时自动重新授权
 Hypothesis: 手机的 P2P PBC 请求在固定 120 秒授权窗结束后到达；watcher 立即检测 WPS-TIMEOUT 或 P2P-PROV-DISC-PBC-REQ 并重新执行 wps_pbc any，可避免人工时序造成的关联失败。
 Files: scripts/runtime/manual_miracast_chain_20260920.sh, WORKTREE_CHANGELOG.md
