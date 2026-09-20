@@ -17,3 +17,12 @@ Decision: rejected for GO/Miracast; registration-only result is reproducible but
 
 结果更新：commit 8a1c889。板端 #241 冷启动基线已核验为 a69c:8d80、wlan0、无 AIC 模块。候选目录三件套 MD5 分别为 loader 5186d0db18ac146d2b940a54d11f226e、fdrv e68b49a3f30d8c061334987f1a237720、firmware 01acfbebdfb15755e3fe853e7bc95c7d。loader insmod 返回 0 并注册 8d83；fdrv insmod 返回 0 并注册 wlan1，wlan0 保持在线。协议脚本 wpa 阶段完成 WFD 配置；go 阶段的 p2p_group_add freq=5805 后 SSH 控制链路超时，未到 DHCP、手机关联或 RTSP。使用 COM5 收到 OK CH2 OFF 和 OK CH2 ON 后冷启动恢复原基线。未覆盖 /lib/modules，未部署内核。
 Decision: rejected for GO/Miracast; registration-only result is reproducible but not accepted. Rollback: physical cold boot via COM5 restores 8d80 baseline.
+
+## 2026-09-20 / planned / GO 建组串口证据采集
+Hypothesis: GO 建组失联发生于 AIC AP/beacon 或第二个 bulk OUT 端点活动时；同步 COM6 日志可以区分内核 panic、USB reset、AIC driver error 和纯 WLAN 断链。
+Files: WORKTREE_CHANGELOG.md
+Commit: pending
+Build: none.
+Deploy and rollback: reuse only the isolated ugreen_dual_out_20260920 artifacts and protocol-only script; no system file replacement. Failure rollback is COM5 cold boot.
+Tests: record COM6 from before p2p_group_add freq=5805 until completion or loss of SSH, then verify cold baseline.
+Decision: pending
