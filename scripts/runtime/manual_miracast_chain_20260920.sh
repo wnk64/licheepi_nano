@@ -14,6 +14,12 @@ WPA=$BASE/candidates/miracast_stable_protocol_20260818/wpa24_aic_wfd_supplicant
 CLI=$BASE/candidates/miracast_stable_protocol_20260818/wpa24_aic_wfd_cli
 DHCP=$BASE/candidates/miracast_stable_protocol_20260818/tiny_dhcpd_49
 SINK=$BASE/miracast_sink_dump.lowest
+FIFO=$RUNTIME/live.h264.fifo
+PLAYER_SUPERVISOR=$BASE/candidates/miracast_stable_protocol_20260818/supervise_h264_fifo_player.sh
+ROTATE_PLAYER=/root/display_480x800_candidate_20260914/rotation/cedar_drm_player_rotate_x0
+PLAYER_WIDTH=${PLAYER_WIDTH:-800}
+PLAYER_HEIGHT=${PLAYER_HEIGHT:-480}
+PLAYER_FPS=${PLAYER_FPS:-30}
 
 log() {
     echo "[manual-miracast] $*"
@@ -33,7 +39,34 @@ has_iface() {
 }
 
 require_wpa() {
-    [ -x "$WPA" ] && [ -x "$CLI" ] && [ -x "$DHCP" ] && [ -x "$SINK" ]
+    [ -x "$WPA" ] && [ -x "$CLI" ] && [ -x "$DHCP" ] && [ -x "$SINK" ] &&
+        [ -x "$PLAYER_SUPERVISOR" ] && [ -x "$ROTATE_PLAYER" ]
+}
+
+player_stop() {
+    pid_stop "$RUNTIME/player_supervisor.pid"
+    "$PLAYER_SUPERVISOR" stop 2>/dev/null || true
+    rm -f "$FIFO"
+}
+
+player_start() {
+    player_stop
+    rm -f "$RUNTIME/player.log" "$RUNTIME/player.stdout"
+    CEDAR_ROTATE=90 CEDAR_NO_PACE=0 CEDAR_VIEW_X=0 CEDAR_VIEW_Y=0 \
+        CEDAR_VIEW_W=480 CEDAR_VIEW_H=800 LOWMEM=1 STOP_GMENU=1 \
+        PLAYER="$ROTATE_PLAYER" WIDTH="$PLAYER_WIDTH" HEIGHT="$PLAYER_HEIGHT" \
+        FPS="$PLAYER_FPS" FIFO="$FIFO" LOG="$RUNTIME/player.log" \
+        RUN_DIR="$RUNTIME" nohup "$PLAYER_SUPERVISOR" start \
+        </dev/null >"$RUNTIME/player.stdout" 2>&1 &
+    echo $! >"$RUNTIME/player_supervisor.pid"
+    i=0
+    while [ "$i" -lt 10 ]; do
+        [ -p "$FIFO" ] && break
+        i=$((i + 1))
+        sleep 1
+    done
+    [ -p "$FIFO" ] || { log "rotation player FIFO not ready"; return 1; }
+    log "rotation player ready: ${PLAYER_WIDTH}x${PLAYER_HEIGHT}@${PLAYER_FPS}, 90 degrees"
 }
 
 wpa_start() {
@@ -85,6 +118,7 @@ go_start() {
     pid_stop "$RUNTIME/dhcp.pid"
     nohup "$DHCP" "$IFACE" </dev/null >"$RUNTIME/dhcp.log" 2>&1 &
     echo $! >"$RUNTIME/dhcp.pid"
+    player_start
     "$CLI" -p "$CTRL" -i "$IFACE" wps_pbc any
     "$CLI" -p "$CTRL" -i "$IFACE" status
 }
@@ -96,7 +130,7 @@ watch_loop() {
         if [ "$current" -gt "$seen" ]; then
             /sbin/arp -d "$CLIENT_IP" 2>/dev/null || true
             /sbin/arp -s "$CLIENT_IP" "$CLIENT_MAC" -i "$IFACE"
-            exec "$SINK" "$CLIENT_IP" "$RUNTIME/stream.h264"
+            exec "$SINK" "$CLIENT_IP" "$FIFO"
         fi
         sleep 1
     done
@@ -105,7 +139,7 @@ watch_loop() {
 watch_start() {
     [ -f "$RUNTIME/dhcp.pid" ] || { log "run go first"; return 1; }
     pid_stop "$RUNTIME/watch.pid"
-    rm -f "$RUNTIME/sink.log" "$RUNTIME/stream.h264"
+    rm -f "$RUNTIME/sink.log"
     nohup "$0" _watch_loop </dev/null >"$RUNTIME/sink.log" 2>&1 &
     echo $! >"$RUNTIME/watch.pid"
     log "watching DHCP REQUEST for $CLIENT_IP"
@@ -116,6 +150,7 @@ stop() {
     pid_stop "$RUNTIME/watch.pid"
     pid_stop "$RUNTIME/dhcp.pid"
     pid_stop "$RUNTIME/wpa.pid"
+    player_stop
     /sbin/ifconfig "$IFACE" down 2>/dev/null || true
     rm -rf "$RUNTIME"
 }
@@ -133,6 +168,8 @@ status() {
     tail -60 "$RUNTIME/dhcp.log" 2>/dev/null || true
     echo '--- sink ---'
     tail -80 "$RUNTIME/sink.log" 2>/dev/null || true
+    echo '--- player ---'
+    tail -80 "$RUNTIME/player.log" 2>/dev/null || true
 }
 
 case "${1:-}" in

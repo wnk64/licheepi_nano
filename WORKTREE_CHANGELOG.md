@@ -118,6 +118,15 @@ Failure: p2p_group_add freq=5805 reproducibly reset the entire board before DHCP
 Decision: do not use the old all-in-one Miracast wrappers and do not attribute this to panel/Cedar memory. The active blocker is the 5 GHz P2P radio-enable reset; next work must isolate AIC power/firmware behavior at GO creation with serial observation before attempting phone or player stages.
 Failure-update: LOWMEM_TUNE=0, STOP_DBUS=0, DROP_PAGE_CACHE=0, CAPTURE_MODE=null prevents the reset, but GO still fails before DHCP/capture/player: DIRECT-XV appears, then WPA reports Failed to set beacon parameters, Could not connect to kernel driver, and wlan1 disappears. Active blocker is AIC AP/GO beacon configuration, not panel/Cedar.\n
 
+## 2026-09-20 / planned / Miracast 接入 Cedar 90 度旋转 FIFO 播放
+Hypothesis: 旋转 Cedar 播放器作为唯一解码与 DRM 显示消费者，并在启动前关闭非必要蓝牙、gmenu、D-Bus 和页缓存，可在当前 54 MiB RAM / 24 MiB CMA 平台上为实时 Miracast 留出连续内存。
+Files: scripts/runtime/manual_miracast_chain_20260920.sh, WORKTREE_CHANGELOG.md, 变更记录.md
+Commit: pending
+Build: shell syntax check only; no kernel build or module change.
+Deploy and rollback: deploy only the tracked protocol script into its isolated candidate directory. Rollback uses the existing stop command and leaves /lib/modules, kernel, AIC modules, DTS, and rootfs unchanged.
+Tests: stop local test player; verify pre-cast MemAvailable/CmaFree; start GO and FIFO player; require player log rotation=1 output=480x800, phone association, DHCP, RTSP, then test display.
+Decision: pending
+
 ## 2026-09-20 / planned / 回退已拒绝的 MUSB TX 轮转改动
 Hypothesis: 当前源码中的 `ep->tx_reinit = 1` 来自已拒绝的 343d718，板端 #241 未使用该行；先将源码恢复到 #241 对应调度状态，避免后续实验叠加已证实导致 GO 后失联的改动。
 Files: drivers/usb/musb/musb_host.c, WORKTREE_CHANGELOG.md
