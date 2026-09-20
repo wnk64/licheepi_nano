@@ -3,7 +3,6 @@ set -eu
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 BASE=/root/aic_miracast
-PAIR=$BASE/candidates/aic_20260725_known_good
 RUNTIME=/tmp/manual_miracast_20260920
 IFACE=wlan1
 GO_IP=192.168.49.1
@@ -15,9 +14,6 @@ WPA=$BASE/candidates/miracast_stable_protocol_20260818/wpa24_aic_wfd_supplicant
 CLI=$BASE/candidates/miracast_stable_protocol_20260818/wpa24_aic_wfd_cli
 DHCP=$BASE/candidates/miracast_stable_protocol_20260818/tiny_dhcpd_49
 SINK=$BASE/miracast_sink_dump.lowest
-LOADER=$PAIR/aic_load_fw.ko
-FDRV=$PAIR/aic8800_fdrv.ko
-FW_DIR=$PAIR/firmware
 
 log() {
     echo "[manual-miracast] $*"
@@ -36,55 +32,12 @@ has_iface() {
     [ -e "/sys/class/net/$IFACE" ]
 }
 
-wait_usb() {
-    wanted=$1
-    i=0
-    while [ "$i" -lt 25 ]; do
-        lsusb 2>/dev/null | grep -qi "$wanted" && return 0
-        i=$((i + 1))
-        sleep 1
-    done
-    return 1
-}
-
-wait_iface() {
-    i=0
-    while [ "$i" -lt 25 ]; do
-        has_iface && return 0
-        i=$((i + 1))
-        sleep 1
-    done
-    return 1
-}
-
 require_wpa() {
     [ -x "$WPA" ] && [ -x "$CLI" ] && [ -x "$DHCP" ] && [ -x "$SINK" ]
 }
 
-register() {
-    [ -f "$LOADER" ] && [ -f "$FDRV" ] && [ -f "$FW_DIR/fmacfw_8800d80_u02.bin" ]
-    md5sum "$LOADER" "$FDRV" "$FW_DIR/fmacfw_8800d80_u02.bin"
-    has_iface && { log "$IFACE already exists"; return 0; }
-    lsusb 2>/dev/null | grep -qi 'a69c:8d80' || {
-        log "expected a69c:8d80 before loader"
-        return 1
-    }
-    /sbin/insmod "$LOADER" aic_fw_path="$FW_DIR" aicwf_dbg_level=0
-    wait_usb 'a69c:8d83' || {
-        log "loader did not reach a69c:8d83"
-        return 1
-    }
-    /sbin/insmod "$FDRV" aicwf_dbg_level=0
-    wait_iface || {
-        log "$IFACE did not register"
-        return 1
-    }
-    /sbin/ifconfig "$IFACE" up
-    log "$IFACE registered"
-}
-
 wpa_start() {
-    has_iface || { log "$IFACE missing; run register first"; return 1; }
+    has_iface || { log "$IFACE missing; register it with a source-backed driver first"; return 1; }
     require_wpa || { log "missing protocol executable"; return 1; }
     pid_stop "$RUNTIME/wpa.pid"
     rm -rf "$CTRL"
@@ -183,7 +136,6 @@ status() {
 }
 
 case "${1:-}" in
-    register) register ;;
     wpa) wpa_start ;;
     go) go_start ;;
     watch) watch_start ;;
@@ -191,7 +143,7 @@ case "${1:-}" in
     status) status ;;
     _watch_loop) watch_loop ;;
     *)
-        echo "Usage: $0 {register|wpa|go|watch|stop|status}"
+        echo "Usage: $0 {wpa|go|watch|stop|status}"
         exit 2
         ;;
 esac
