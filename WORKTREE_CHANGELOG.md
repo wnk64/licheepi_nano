@@ -29,4 +29,13 @@ will be replaced.
 Tests: require loader 8d80->8d83, wlan1, WPA/P2P GO, DHCP, RTSP/RTP, and
 wlan0/SSH regression. Do not use the protocol script to load driver modules.
 Rollback: unload candidate modules or physical cold boot.
+
+Commit: c228e5fc8e3a302a7f1198b1b591bbb128f943f5.
+Build: make -C /home/wnk/LicheePi_Nano/linux_musb_clean_ep1_20260811
+M=/home/wnk/aic8800_ugreen_v14_20260919 ARCH=arm with fixed Linaro prefix,
+LOCALVERSION=, CONFIG_PREALLOC_RX_SKB=n, modules; passed with one existing
+const-qualifier warning in rwnx_radar.c.
+Artifacts: loader MD5 5186d0db18ac146d2b940a54d11f226e; dual OUT fdrv MD5
+e68b49a3f30d8c061334987f1a237720; both vermagic 5.7.1 mod_unload ARMv5 p2v8.
+Decision: build passed; runtime deployment remains pending.
 \n## 2026-09-19 / planned / beacon payload bounds\nHypothesis: P2P/WFD beacon exceeds the fixed 512-byte APM_SET_BEACON_IE message array and memcpy corrupts the kernel message allocation.\nFiles: drivers/aic8800/aic8800_fdrv/rwnx_msg_tx.c\nProtected: #237 zImage, MUSB modules, board system AIC files, WLAN.\nRollback: runtime-only candidate directory; unload modules or cold boot.\n\n## 2026-09-19 / planned / single USB OUT queue\nHypothesis: AIC firmware exposes bulk OUT endpoints 1 and 2; CONFIG_USB_MSG_OUT_EP directs IPC/APM messages to endpoint 2 while F1C200S only has one 512-byte MUSB TX FIFO. Use endpoint 1 for both data and IPC messages.\nFiles: drivers/aic8800/aic8800_fdrv/Makefile\nProtected: #237 kernel, MUSB, DTB, board system AIC files, wlan0.\nRollback: runtime-only candidate modules; cold boot.\n\n## 2026-09-19 / rejected / single USB OUT queue\nHypothesis: use one logical USB OUT endpoint to avoid MUSB TX QH contention.\nFiles: drivers/aic8800/aic8800_fdrv/Makefile\nCommit: cbbf910\nBuild: fdrv 6ea8c42cb22c5bd27ab78a922a4e670a, vermagic 5.7.1 mod_unload ARMv5 p2v8.\nTests: loader reached 8d83, but fdrv timed out on MM_SET_STACK_START_REQ and did not create wlan1. wlan0 stayed online.\nDecision: rejected; AIC firmware requires its distinct message OUT endpoint.\n
