@@ -382,7 +382,6 @@ static void musb_advance_schedule(struct musb *musb, struct urb *urb,
 		struct list_head *head = qh->ring.prev;
 
 		list_move_tail(&qh->ring, head);
-		ep->tx_reinit = 1;
 		qh = first_qh(head);
 		musb_ep_set_qh(ep, is_in, qh);
 	}
