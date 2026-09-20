@@ -125,7 +125,18 @@ go_start() {
 
 watch_loop() {
     seen=$(grep -c "REQUEST .*ip=$CLIENT_IP" "$RUNTIME/dhcp.log" 2>/dev/null || true)
+    pbc_timeout_seen=$(grep -c "WPS-TIMEOUT" "$RUNTIME/wpa.log" 2>/dev/null || true)
+    pbc_request_seen=$(grep -c "P2P-PROV-DISC-PBC-REQ" "$RUNTIME/wpa.log" 2>/dev/null || true)
     while true; do
+        pbc_timeout_current=$(grep -c "WPS-TIMEOUT" "$RUNTIME/wpa.log" 2>/dev/null || true)
+        pbc_request_current=$(grep -c "P2P-PROV-DISC-PBC-REQ" "$RUNTIME/wpa.log" 2>/dev/null || true)
+        if [ "$pbc_timeout_current" -gt "$pbc_timeout_seen" ] || \
+           [ "$pbc_request_current" -gt "$pbc_request_seen" ]; then
+            "$CLI" -p "$CTRL" -i "$IFACE" wps_pbc any >>"$RUNTIME/wpa_rearm.log" 2>&1 || true
+            pbc_timeout_seen=$pbc_timeout_current
+            pbc_request_seen=$pbc_request_current
+            log "PBC rearmed after timeout or peer request"
+        fi
         current=$(grep -c "REQUEST .*ip=$CLIENT_IP" "$RUNTIME/dhcp.log" 2>/dev/null || true)
         if [ "$current" -gt "$seen" ]; then
             /sbin/arp -d "$CLIENT_IP" 2>/dev/null || true
