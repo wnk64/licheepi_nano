@@ -17,9 +17,9 @@ SINK=$BASE/miracast_sink_dump.lowest
 FIFO=$RUNTIME/live.h264.fifo
 PLAYER_SUPERVISOR=$BASE/candidates/miracast_stable_protocol_20260818/supervise_h264_fifo_player.sh
 ROTATE_PLAYER=/root/display_480x800_candidate_20260914/rotation/cedar_drm_player_rotate_x0
-PLAYER_WIDTH=${PLAYER_WIDTH:-800}
+PLAYER_WIDTH=${PLAYER_WIDTH:-640}
 PLAYER_HEIGHT=${PLAYER_HEIGHT:-480}
-PLAYER_FPS=${PLAYER_FPS:-30}
+PLAYER_FPS=${PLAYER_FPS:-60}
 
 log() {
     echo "[manual-miracast] $*"

@@ -154,6 +154,15 @@ Deploy and rollback: isolated runtime script only. Stop must return the board to
 Tests: stop after a started FIFO player; confirm no matching process and compare MemAvailable/CmaFree.
 Decision: pending
 
+## 2026-09-21 / planned / 对齐 Redmi 实际协商视频尺寸
+Hypothesis: RTSP/RTP succeeded but the rotated raw-H.264 player was configured for the local 800x480 sample while Redmi negotiated 640x480. Set the live-player input to 640x480@60 so the Cedar decoder accepts the stream and rotates it to native 480x640 output.
+Files: scripts/runtime/manual_miracast_chain_20260920.sh, WORKTREE_CHANGELOG.md
+Commit: pending
+Build: shell syntax check only.
+Deploy and rollback: isolated runtime script only; stop old session before launch. No kernel, AIC driver, DTS, module or rootfs modification.
+Tests: player log must no longer contain err size; require raw H.264 decode, rotation request=1, RTSP keepalive and stable phone association.
+Decision: pending
+
 ## 2026-09-20 / planned / 回退已拒绝的 MUSB TX 轮转改动
 Hypothesis: 当前源码中的 `ep->tx_reinit = 1` 来自已拒绝的 343d718，板端 #241 未使用该行；先将源码恢复到 #241 对应调度状态，避免后续实验叠加已证实导致 GO 后失联的改动。
 Files: drivers/usb/musb/musb_host.c, WORKTREE_CHANGELOG.md
