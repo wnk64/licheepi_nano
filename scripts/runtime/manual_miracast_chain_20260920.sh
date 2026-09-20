@@ -44,6 +44,7 @@ require_wpa() {
 }
 
 player_stop() {
+    pid_stop "$RUNTIME/h264_fifo_player.pid"
     pid_stop "$RUNTIME/player_supervisor.pid"
     "$PLAYER_SUPERVISOR" stop 2>/dev/null || true
     rm -f "$FIFO"

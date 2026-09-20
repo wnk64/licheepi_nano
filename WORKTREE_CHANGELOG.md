@@ -136,6 +136,15 @@ Deploy and rollback: redeploy only the isolated runtime candidate script; stop r
 Tests: require PBC rearm log, then AP-STA-CONNECTED, DHCP REQUEST, RTSP and player FIFO data.
 Decision: pending
 
+## 2026-09-21 / planned / 旋转播放器单实例清理
+Hypothesis: FIFO supervisor stop path does not match the rotation binary's absolute path, leaving a Cedar DRM plane owner. Explicitly stopping h264_fifo_player.pid before its supervisor prevents drmModeSetPlane err -13 on the next cast.
+Files: scripts/runtime/manual_miracast_chain_20260920.sh, WORKTREE_CHANGELOG.md
+Commit: pending
+Build: shell syntax check only.
+Deploy and rollback: isolated runtime script only; stop should leave no rotated Cedar player, supervisor, FIFO, WPA or DHCP process.
+Tests: after stop, no cedar_drm_player_rotate_x0 process remains; next GO starts exactly one player with no DRM plane error.
+Decision: pending
+
 ## 2026-09-20 / planned / 回退已拒绝的 MUSB TX 轮转改动
 Hypothesis: 当前源码中的 `ep->tx_reinit = 1` 来自已拒绝的 343d718，板端 #241 未使用该行；先将源码恢复到 #241 对应调度状态，避免后续实验叠加已证实导致 GO 后失联的改动。
 Files: drivers/usb/musb/musb_host.c, WORKTREE_CHANGELOG.md
