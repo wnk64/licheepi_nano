@@ -38,4 +38,11 @@ const-qualifier warning in rwnx_radar.c.
 Artifacts: loader MD5 5186d0db18ac146d2b940a54d11f226e; dual OUT fdrv MD5
 e68b49a3f30d8c061334987f1a237720; both vermagic 5.7.1 mod_unload ARMv5 p2v8.
 Decision: build passed; runtime deployment remains pending.
+
+Deploy: runtime-only /root/aic_miracast/candidates/ugreen_dual_out_20260920;
+no system module or firmware file was replaced. Board hashes: loader
+5186d0db18ac146d2b940a54d11f226e; fdrv
+e68b49a3f30d8c061334987f1a237720; fmac
+01acfbebdfb15755e3fe853e7bc95c7d.
+Tests: pending loader and wlan1 registration.
 \n## 2026-09-19 / planned / beacon payload bounds\nHypothesis: P2P/WFD beacon exceeds the fixed 512-byte APM_SET_BEACON_IE message array and memcpy corrupts the kernel message allocation.\nFiles: drivers/aic8800/aic8800_fdrv/rwnx_msg_tx.c\nProtected: #237 zImage, MUSB modules, board system AIC files, WLAN.\nRollback: runtime-only candidate directory; unload modules or cold boot.\n\n## 2026-09-19 / planned / single USB OUT queue\nHypothesis: AIC firmware exposes bulk OUT endpoints 1 and 2; CONFIG_USB_MSG_OUT_EP directs IPC/APM messages to endpoint 2 while F1C200S only has one 512-byte MUSB TX FIFO. Use endpoint 1 for both data and IPC messages.\nFiles: drivers/aic8800/aic8800_fdrv/Makefile\nProtected: #237 kernel, MUSB, DTB, board system AIC files, wlan0.\nRollback: runtime-only candidate modules; cold boot.\n\n## 2026-09-19 / rejected / single USB OUT queue\nHypothesis: use one logical USB OUT endpoint to avoid MUSB TX QH contention.\nFiles: drivers/aic8800/aic8800_fdrv/Makefile\nCommit: cbbf910\nBuild: fdrv 6ea8c42cb22c5bd27ab78a922a4e670a, vermagic 5.7.1 mod_unload ARMv5 p2v8.\nTests: loader reached 8d83, but fdrv timed out on MM_SET_STACK_START_REQ and did not create wlan1. wlan0 stayed online.\nDecision: rejected; AIC firmware requires its distinct message OUT endpoint.\n
