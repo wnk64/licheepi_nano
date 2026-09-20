@@ -29,7 +29,11 @@ pid_stop() {
     pid_file=$1
     if [ -f "$pid_file" ]; then
         pid=$(cat "$pid_file" 2>/dev/null || true)
-        [ -n "$pid" ] && kill "$pid" 2>/dev/null || true
+        if [ -n "$pid" ]; then
+            kill "$pid" 2>/dev/null || true
+            sleep 1
+            kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
+        fi
         rm -f "$pid_file"
     fi
 }
