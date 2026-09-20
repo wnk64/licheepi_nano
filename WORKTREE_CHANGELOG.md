@@ -127,6 +127,8 @@ Deploy and rollback: deploy only the tracked protocol script into its isolated c
 Tests: stop local test player; verify pre-cast MemAvailable/CmaFree; start GO and FIFO player; require player log rotation=1 output=480x800, phone association, DHCP, RTSP, then test display.
 Decision: pending
 
+Result update: On a subsequent physical cold boot with 18.8 MiB free CMA, loading the same source-built loader/fdrv registered wlan1, but the scripted WPA/GO launch reset or disconnected the AIC before GO completion: a later SSH observation found the board newly booted at #241 with a69c:8d80, wlan0 only, no AIC modules, and no retained panic/OOM trace. This happened before phone association, DHCP, RTSP, FIFO, or Cedar decoding. Do not repeat this startup sequence blindly; isolate the runtime trigger before another end-to-end test. Decision: rejected for this attempt; board restored to cold baseline.
+
 Result update: commit d5145b4. Cold boot #241 with source-built UGREEN dual-OUT modules reached wlan1, 5805 MHz GO, PBC, AP-STA-CONNECTED, DHCP 192.168.49.52, and complete RTSP SETUP/PLAY. Sink received 44 RTP packets / 15448 H.264 bytes. Cedar exited because its raw input was configured as 800x480 while the negotiated stream was 640x480; no OOM, CMA allocation failure, kernel panic, USB reset, or AIC disconnect occurred. A subsequent 640x480@60 GO startup lost SSH/serial control before phone connection and was recovered by COM5 cold boot. This is pending independent local 640x480 rotation validation; not accepted.
 
 ## 2026-09-21 / planned / PBC 超时自动重新授权
