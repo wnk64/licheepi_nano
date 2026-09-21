@@ -55,6 +55,8 @@ typedef struct {
   drmModePlaneRes *plane_res;
   uint32_t crtc_id;
   uint32_t conn_id;
+  int display_width;
+  int display_height;
   layer_t layer[4]; // 4 layers
   drmVBlank blank;
   pthread_t display_thread;

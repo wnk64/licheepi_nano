@@ -77,6 +77,12 @@ static int mp_env_int(const char *name, int fallback)
     return n > 0 ? n : fallback;
 }
 
+static int mp_env_coordinate(const char *name, int fallback)
+{
+    const char *v = getenv(name);
+    return v && *v ? atoi(v) : fallback;
+}
+
 
 static int mp_env_flag(const char *name)
 {
@@ -91,10 +97,10 @@ static void mp_configure_yuv_view_once(mediaplayer_t *mp, VideoPicture *picture)
 
     int src_w = picture->nWidth;
     int src_h = picture->nHeight;
-    int safe_x = mp_env_int("CEDAR_VIEW_X", 12);
-    int safe_y = mp_env_int("CEDAR_VIEW_Y", 0);
-    int safe_w = mp_env_int("CEDAR_VIEW_W", 360);
-    int safe_h = mp_env_int("CEDAR_VIEW_H", 640);
+    int safe_x = mp_env_coordinate("CEDAR_VIEW_X", 0);
+    int safe_y = mp_env_coordinate("CEDAR_VIEW_Y", 0);
+    int safe_w = mp_env_int("CEDAR_VIEW_W", mp->drm_warpper->display_width);
+    int safe_h = mp_env_int("CEDAR_VIEW_H", mp->drm_warpper->display_height);
     int stretch = mp_env_int("CEDAR_VIEW_STRETCH", 0);
     int out_w = safe_w;
     int out_h = safe_h;
@@ -944,7 +950,13 @@ static void *mp_decoder_thread(void *param)
                     break;
                 }
 
-                mp_configure_yuv_view_once(mp, picture);
+                if (picture->nWidth != VIDEO_WIDTH ||
+                    picture->nHeight != VIDEO_HEIGHT) {
+                    mp_configure_yuv_view_once(mp, picture);
+                } else {
+                    log_info("native YUV frame %dx%d: skip DRM view scaling",
+                             picture->nWidth, picture->nHeight);
+                }
 
                 int64_t now = mp_get_now_us();
                 int64_t target_time = now;
