@@ -129,6 +129,13 @@ Decision: pending
 
 Result update: On a subsequent physical cold boot with 18.8 MiB free CMA, loading the same source-built loader/fdrv registered wlan1, but the scripted WPA/GO launch reset or disconnected the AIC before GO completion: a later SSH observation found the board newly booted at #241 with a69c:8d80, wlan0 only, no AIC modules, and no retained panic/OOM trace. This happened before phone association, DHCP, RTSP, FIFO, or Cedar decoding. Do not repeat this startup sequence blindly; isolate the runtime trigger before another end-to-end test. Decision: rejected for this attempt; board restored to cold baseline.
 
+## 2026-09-21 / measured / AIC wlan1 and minimum GO staged reproduction
+Method: Two physical cold boot trials, both with #241, source-built UGREEN loader 5186d0db18ac146d2b940a54d11f226e, fdrv e68b49a3f30d8c061334987f1a237720, firmware 01acfbebdfb15755e3fe853e7bc95c7d. Stages were loader -> 8d83 -> fdrv -> wlan1 -> WPA/WFD only -> p2p_flush -> p2p_stop_find -> p2p_group_add freq=5805. No DHCP, RTSP sink, Cedar player, FIFO, PBC, or phone connection was started.
+Trial 1: loader/fdrv and WPA/WFD passed; p2p_group_add returned OK then board rebooted to #241 / 8d80 / wlan0 before status read.
+Trial 2: same staged command path passed; WPA logged P2P-GROUP-STARTED GO ssid=DIRECT-rX freq=5805, kernel logged AP started channel=5805, and the group stayed present throughout a 30-second idle observation with SSH alive.
+Conclusion: wlan1 registration and WPA configuration are not the deterministic fault. The AP/GO launch has an intermittent AIC/AP runtime failure before higher layers. Keep this successful group for the next staged PBC/DHCP test; do not add Cedar until association and DHCP are confirmed.
+Decision: pending; no kernel or driver source change.
+
 Result update: commit d5145b4. Cold boot #241 with source-built UGREEN dual-OUT modules reached wlan1, 5805 MHz GO, PBC, AP-STA-CONNECTED, DHCP 192.168.49.52, and complete RTSP SETUP/PLAY. Sink received 44 RTP packets / 15448 H.264 bytes. Cedar exited because its raw input was configured as 800x480 while the negotiated stream was 640x480; no OOM, CMA allocation failure, kernel panic, USB reset, or AIC disconnect occurred. A subsequent 640x480@60 GO startup lost SSH/serial control before phone connection and was recovered by COM5 cold boot. This is pending independent local 640x480 rotation validation; not accepted.
 
 ## 2026-09-21 / planned / PBC 超时自动重新授权
