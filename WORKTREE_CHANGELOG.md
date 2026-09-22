@@ -1,3 +1,11 @@
+## 2026-09-22 / planned / MUSB disconnect unlink guard
+Hypothesis: AIC/RTL USB disconnect under Miracast calls musb_urb_dequeue with urb->ep already NULL. usb_hcd_check_unlink_urb dereferences urb->ep and crashes usb_hub_wq, as captured on COM6 at usb_hcd_check_unlink_urb+0x18 from musb_urb_dequeue.
+Files: drivers/usb/musb/musb_host.c, WORKTREE_CHANGELOG.md
+Commit: pending
+Build: exact kernel 5.7.1 LOCALVERSION= command after preflight; retain matched sunxi.ko and phy-generic.ko artifacts.
+Deploy and rollback: backup boot zImage, deploy candidate only through SSH, verify hash, retain rollback zImage; no raw partition write.
+Tests: cold boot x3; hub/RTL/wlan0; AIC 8d80->8d83->wlan1; 5745MHz GO; PBC/DHCP/RTSP/RTP/native rotation; confirm disconnect no longer causes usb_hub_wq Oops.
+Decision: pending
 # Worktree Change Log
 
 Worktree: /home/wnk/LicheePi_Nano/linux_musb_clean_ep1_20260811

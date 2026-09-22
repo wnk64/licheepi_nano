@@ -2402,6 +2402,10 @@ static int musb_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 	int			ret;
 
 	trace_musb_urb_deq(musb, urb);
+	/* Disconnect teardown may dequeue an URB after usbcore cleared ep. */
+	if (!urb->ep)
+		return -EIDRM;
+
 
 	spin_lock_irqsave(&musb->lock, flags);
 	ret = usb_hcd_check_unlink_urb(hcd, urb, status);
