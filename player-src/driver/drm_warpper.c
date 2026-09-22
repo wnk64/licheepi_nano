@@ -246,9 +246,9 @@ int drm_warpper_init(drm_warpper_t *drm_warpper){
         drm_warpper->conn->modes[0].name, drm_warpper->conn->modes[0].vdisplay, drm_warpper->conn->modes[0].hdisplay,
         drm_warpper->conn->modes[0].vrefresh);
 
-    /* This board's DRM coordinate space follows the panel's portrait mode. */
-    drm_warpper->display_width = drm_warpper->conn->modes[0].vdisplay;
-    drm_warpper->display_height = drm_warpper->conn->modes[0].hdisplay;
+    /* DRM stores this portrait mode as hdisplay=480, vdisplay=800. */
+    drm_warpper->display_width = drm_warpper->conn->modes[0].hdisplay;
+    drm_warpper->display_height = drm_warpper->conn->modes[0].vdisplay;
 
     drm_warpper->blank.request.type = DRM_VBLANK_RELATIVE;
     drm_warpper->blank.request.sequence = 1;
