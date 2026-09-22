@@ -31,3 +31,11 @@ Decision: pending
 Test: cold boot; current UGREEN loader 5186d0db18ac146d2b940a54d11f226e, fdrv e68b49a3f30d8c061334987f1a237720, firmware 01acfbebdfb15755e3fe853e7bc95c7d; 8d80->8d83->wlan1 passed; WFD passed; p2p_group_add freq=5805 returned OK; COM6 then recorded only netlink attribute type 213 invalid length and chan.flags 0 before SSH and console became silent; DHCP, RTSP and player were not started; COM5 cold boot restored 8d80/wlan0/no AIC modules.
 Decision: rejected for 5 GHz GO/Miracast. Evidence localizes failure after APM_START_REQ reaches firmware/USB confirmation path; no speculative beacon or command-queue source change.
 中文结论: 本轮仅完成串口证据采集，5 GHz GO 失败后已物理冷启动恢复基线，未修改驱动 C 代码。
+## 2026-09-22 / planned / F1C200S 8KiB USB RX aggregation
+Hypothesis: D81 forced 20KiB GFP_ATOMIC RX skb allocation fails while native rotation is active; 2KiB eliminates allocation failure but prevents RTSP. An 8KiB aggregation buffer may retain RTSP while avoiding the 20KiB allocation failure.
+Files: aic8800_fdrv/Makefile, aic8800_fdrv/aicwf_usb.h, WORKTREE_CHANGELOG.md
+Commit: pending
+Build: exact 5.7.1 external-module command with CONFIG_F1C200S_USB_RX_AGGR_8K=y and CONFIG_PREALLOC_RX_SKB=n.
+Deploy and rollback: isolated board candidate only; restore fdrv e68b49a3f30d8c061334987f1a237720 after any failed registration, RTSP, stream, or control-path test.
+Tests: 8d80->8d83->wlan1, 5745MHz GO, PBC, DHCP, RTSP, RTP continuity, native rotated display, wlan0 control path.
+Decision: pending
