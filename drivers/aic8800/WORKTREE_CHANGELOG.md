@@ -26,3 +26,8 @@ Build: none.
 Deploy and rollback: reuse only the isolated ugreen_dual_out_20260920 artifacts and protocol-only script; no system file replacement. Failure rollback is COM5 cold boot.
 Tests: record COM6 from before p2p_group_add freq=5805 until completion or loss of SSH, then verify cold baseline.
 Decision: pending
+
+## 2026-09-22 / rejected / 5 GHz GO console capture
+Test: cold boot; current UGREEN loader 5186d0db18ac146d2b940a54d11f226e, fdrv e68b49a3f30d8c061334987f1a237720, firmware 01acfbebdfb15755e3fe853e7bc95c7d; 8d80->8d83->wlan1 passed; WFD passed; p2p_group_add freq=5805 returned OK; COM6 then recorded only netlink attribute type 213 invalid length and chan.flags 0 before SSH and console became silent; DHCP, RTSP and player were not started; COM5 cold boot restored 8d80/wlan0/no AIC modules.
+Decision: rejected for 5 GHz GO/Miracast. Evidence localizes failure after APM_START_REQ reaches firmware/USB confirmation path; no speculative beacon or command-queue source change.
+中文结论: 本轮仅完成串口证据采集，5 GHz GO 失败后已物理冷启动恢复基线，未修改驱动 C 代码。
