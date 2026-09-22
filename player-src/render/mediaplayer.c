@@ -1599,8 +1599,12 @@ int mediaplayer_start_raw_h264(mediaplayer_t *mp, const char *path,
     vInfo.nFrameDuration = 1000000 / mp->raw_fps;
     vInfo.nAspectRatio   = 1000;
 
-    int layer_width = (width + 31) & ~31;
-    int layer_height = (height + 31) & ~31;
+    const char *rotate_env = getenv("CEDAR_ROTATE");
+    int rotate_90 = rotate_env && strcmp(rotate_env, "90") == 0;
+    int output_width = rotate_90 ? height : width;
+    int output_height = rotate_90 ? width : height;
+    int layer_width = (output_width + 31) & ~31;
+    int layer_height = (output_height + 31) & ~31;
 
     if (drm_warpper_init_layer(mp->drm_warpper, DRM_WARPPER_LAYER_VIDEO,
                                layer_width, layer_height,
@@ -1617,7 +1621,10 @@ int mediaplayer_start_raw_h264(mediaplayer_t *mp, const char *path,
         return -1;
     }
     fill_nv12_buffer_with_color(g_video_buf.vaddr, layer_width, layer_height, 0x000000);
-    drm_warpper_mount_layer(mp->drm_warpper, DRM_WARPPER_LAYER_VIDEO, 0, 0, &g_video_buf);
+    drm_warpper_mount_layer(mp->drm_warpper, DRM_WARPPER_LAYER_VIDEO,
+                            (VIDEO_WIDTH - output_width) / 2,
+                            (VIDEO_HEIGHT - output_height) / 2,
+                            &g_video_buf);
     g_video_buf_ready = 1;
 
     vConfig.eOutputPixelFormat  = PIXEL_FORMAT_YUV_MB32_420;
@@ -1627,6 +1634,10 @@ int mediaplayer_start_raw_h264(mediaplayer_t *mp, const char *path,
     vConfig.nDecodeSmoothFrameBufferNum = BUF_CNT_4_SMOOTH;
     vConfig.memops = mp->memops;
     vConfig.nVbvBufferSize = VBVBUFFERSIZE;
+    vConfig.bRotationEn = rotate_90;
+    vConfig.nRotateDegree = rotate_90 ? 1 : 0;
+    log_info("raw h264 rotation request=%d output=%dx%d native mount",
+             rotate_90, output_width, output_height);
 
     int ret = InitializeVideoDecoder(mp->decoder, &vInfo, &vConfig);
     if (ret != 0) {
