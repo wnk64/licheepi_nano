@@ -880,6 +880,7 @@ static void *mp_decoder_thread(void *param)
     int end_of_stream = 0;
     long long next_frame_time = 0;
     int64_t fallback_interval = mp_frame_interval_us(mp);
+    int native_view_logged = 0;
 
 
     next_frame_time = mp_get_now_us() + fallback_interval;
@@ -953,9 +954,10 @@ static void *mp_decoder_thread(void *param)
                 if (picture->nWidth != VIDEO_WIDTH ||
                     picture->nHeight != VIDEO_HEIGHT) {
                     mp_configure_yuv_view_once(mp, picture);
-                } else {
+                } else if (!native_view_logged) {
                     log_info("native YUV frame %dx%d: skip DRM view scaling",
                              picture->nWidth, picture->nHeight);
+                    native_view_logged = 1;
                 }
 
                 int64_t now = mp_get_now_us();
