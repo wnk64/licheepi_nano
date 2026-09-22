@@ -47,3 +47,11 @@ Build: CONFIG_PREALLOC_RX_SKB=y and CONFIG_F1C200S_PREALLOC_RX_SMALL=y for loade
 Deploy and rollback: isolated candidate only; restore loader 5186d0db18ac146d2b940a54d11f226e and fdrv e68b49a3f30d8c061334987f1a237720 after any registration, GO, or stream failure.
 Tests: loader pool count, 8d80->8d83->wlan1, 5745MHz GO, PBC, DHCP, RTSP, RTP continuity, native rotation, control WLAN.
 Decision: pending
+## 2026-09-22 / planned / F1C200S non-realtime USB workers
+Hypothesis: under continuous Miracast aggregation, the single-core AIC USB RX/TX SCHED_FIFO workers starve the system long enough to trigger the 16-second hardware watchdog. Keep the 64-buffer 20KiB preallocation and build only the fdrv with CONFIG_TXRX_THREAD_PRIO=n.
+Files: aic8800_fdrv/Makefile, WORKTREE_CHANGELOG.md
+Commit: pending
+Build: loader with CONFIG_PREALLOC_RX_SKB=y and CONFIG_F1C200S_PREALLOC_RX_SMALL=y; fdrv same options plus CONFIG_TXRX_THREAD_PRIO=n. Keep 20KiB aggregation length.
+Deploy and rollback: isolated candidate only; power cycle returns to 8d80 baseline; current pool64 modules are retained as rollback artifacts.
+Tests: loader pool=64, wlan1, 5745MHz GO, PBC, DHCP, RTSP, RTP continuity, display, watchdog survival, wlan0 control path.
+Decision: pending
