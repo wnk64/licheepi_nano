@@ -39,3 +39,11 @@ Build: exact 5.7.1 external-module command with CONFIG_F1C200S_USB_RX_AGGR_8K=y 
 Deploy and rollback: isolated board candidate only; restore fdrv e68b49a3f30d8c061334987f1a237720 after any failed registration, RTSP, stream, or control-path test.
 Tests: 8d80->8d83->wlan1, 5745MHz GO, PBC, DHCP, RTSP, RTP continuity, native rotated display, wlan0 control path.
 Decision: pending
+## 2026-09-22 / planned / F1C200S bounded preallocated RX pool
+Hypothesis: 20KiB aggregation frames require the original buffer length, but per-frame GFP_ATOMIC allocation fails after decoder CMA allocation. F1-specific preallocation of 64 x 20KiB buffers removes the atomic allocation while avoiding the original 1000-buffer 20MiB pool.
+Files: aic_load_fw/Makefile, aic_load_fw/aicwf_rx_prealloc.c, WORKTREE_CHANGELOG.md
+Commit: pending
+Build: CONFIG_PREALLOC_RX_SKB=y and CONFIG_F1C200S_PREALLOC_RX_SMALL=y for loader and fdrv; no RX aggregation size override.
+Deploy and rollback: isolated candidate only; restore loader 5186d0db18ac146d2b940a54d11f226e and fdrv e68b49a3f30d8c061334987f1a237720 after any registration, GO, or stream failure.
+Tests: loader pool count, 8d80->8d83->wlan1, 5745MHz GO, PBC, DHCP, RTSP, RTP continuity, native rotation, control WLAN.
+Decision: pending

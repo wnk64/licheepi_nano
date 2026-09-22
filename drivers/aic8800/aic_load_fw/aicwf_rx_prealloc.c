@@ -10,7 +10,11 @@
 
 struct aicwf_rx_buff_list aic_rx_buff_list;
 
+#ifdef CONFIG_F1C200S_PREALLOC_RX_SMALL
+int aic_rxbuff_num_max = 64;
+#else
 int aic_rxbuff_num_max = 1000;
+#endif
 #ifdef CONFIG_PLATFORM_HI
 int aic_rxbuff_size = (4 * 512) * 1;
 #else
