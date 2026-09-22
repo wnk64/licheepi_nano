@@ -1521,6 +1521,7 @@ static void aicwf_usb_free_urb(struct list_head *q, spinlock_t *qlock)
         }
         #endif
         usb_free_urb(usb_buf->urb);
+        usb_buf->urb = NULL;
         #if defined CONFIG_USB_NO_TRANS_DMA_MAP
         // free dma buf if needed
         if (usb_buf->data_buf) {
@@ -2558,6 +2559,9 @@ static void aicwf_usb_disconnect(struct usb_interface *intf)
 	}
 #endif
     aicwf_bus_deinit(usb_dev->dev);
+    /* Stop submitted URBs before freeing the buffers returned to free lists. */
+    aicwf_usb_cancel_all_urbs(usb_dev);
+
     aicwf_usb_deinit(usb_dev);
 
 #ifdef CONFIG_GPIO_WAKEUP

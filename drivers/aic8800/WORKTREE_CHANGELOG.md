@@ -1,3 +1,11 @@
+## 2026-09-22 / planned / AIC USB disconnect submitted-URB teardown
+Hypothesis: During hub disconnect, aicwf_usb_disconnect frees URBs from free lists while submitted RX URBs are still being handled by usbcore. COM6 captured a SLUB BUG in kfree from aicwf_usb_free_urb after the MUSB unlink guard avoided the earlier usb_hcd_check_unlink_urb NULL dereference.
+Files: aic8800_fdrv/aicwf_usb.c, WORKTREE_CHANGELOG.md
+Commit: pending
+Build: same 64-buffer 20KiB preallocation loader/fdrv pair for 5.7.1; no aggregation-size or protocol change.
+Deploy and rollback: isolated candidate only; retain pool64 module pair and #244 MUSB zImage backup.
+Tests: loader pool=64, wlan1/GO, PBC/DHCP/RTSP/RTP, controlled disconnect, no usb_hub_wq Oops or aicwf_usb_free_urb SLUB BUG.
+Decision: pending
 # Worktree Change Log
 
 Worktree: /home/wnk/SoftWare/Driver software/aic8800_ugreen_v14_20260919/Linux/aic8800_linux_driver
