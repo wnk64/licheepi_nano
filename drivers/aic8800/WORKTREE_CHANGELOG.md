@@ -80,3 +80,9 @@ Protected: kernel #244, DTS, firmware, pool64, 20KiB aggregation, realtime worke
 Build: pending; exact release 5.7.1 required, incremental external modules only.
 Deploy: none. Existing isolated loader bb2d68ed26fbb8d3cee554af0aa7735a and fdrv 79e0745c08713e96fd6f3766b589c84f retained.
 Tests: pending; registration/GO before phone and player. Acceptance count zero.
+Source commit: db0d0b4. Incremental tmux build rc=0; only txrxif.o and fdrv relinked. Release/vermagic 5.7.1 mod_unload ARMv5 p2v8.
+Artifacts: loader bb2d68ed26fbb8d3cee554af0aa7735a unchanged; fdrv 334699cc17b7201a23c790306c64b381; firmware 01acfbebdfb15755e3fe853e7bc95c7d.
+Deployment: isolated ugreen_rxguard_db0d0b4_20260927; remote hash verified; original modules retained.
+Test deviation: initial wrong system firmware produced 8d81 and timeout; cold cycle acknowledged OFF/ON, then correct isolated firmware used.
+Measured: 8d80->8d83->wlan1; 5745MHz GO COMPLETED/AP-ENABLED; AP confirmation param=4 expected=4; SSH/ifconfig responsive. No rejected-span evidence proving original crash cause.
+Runtime: DHCP/PBC watcher, ARM lowest sink wait, FIFO native dtsview 90-degree 640x480@60. WFD subelement 11 returned FAIL; phone/end-to-end still pending. Acceptance count zero.
