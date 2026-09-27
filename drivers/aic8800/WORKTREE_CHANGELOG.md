@@ -8,6 +8,13 @@ Tests: loader pool=64, wlan1/GO, PBC/DHCP/RTSP/RTP, controlled disconnect, no us
 Decision: pending
 # Worktree Change Log
 
+## 2026-09-27 / planned / preallocated USB RX complete-frame guards
+Hypothesis: unchecked frame headers/alignment and malformed IPC payload lengths can escape aggregation bounds and corrupt AP confirmation destinations.
+Files: aic8800_fdrv/aicwf_txrxif.c, WORKTREE_CHANGELOG.md, Chinese change record.
+Base: 3a8423f; original worktree; existing isolated loader/fdrv retained; no new worktree or branch.
+Scope: preallocated USB RX parser only; preserve 20KiB/64-buffer settings, worker scheduling, firmware, kernel #244, MUSB, DTS and native rotation player.
+Build/deploy/test: pending. No acceptance claimed. Rollback source 3a8423f and cold runtime 8d80/no AIC modules.
+
 Worktree: /home/wnk/SoftWare/Driver software/aic8800_ugreen_v14_20260919/Linux/aic8800_linux_driver
 Component: external driver
 Base: 35489f9 source-reproducible UGREEN AIC8800 V1.4 source; current dual-OUT source state includes c228e5f
@@ -63,3 +70,13 @@ Build: loader with CONFIG_PREALLOC_RX_SKB=y and CONFIG_F1C200S_PREALLOC_RX_SMALL
 Deploy and rollback: isolated candidate only; power cycle returns to 8d80 baseline; current pool64 modules are retained as rollback artifacts.
 Tests: loader pool=64, wlan1, 5745MHz GO, PBC, DHCP, RTSP, RTP continuity, display, watchdog survival, wlan0 control path.
 Decision: pending
+
+## 2026-09-27 / pending / preallocated USB RX span and IPC guard
+Hypothesis: missing full-frame span checks permit RX length underflow and invalid IPC copies. This is a verified static defect, not a proven crash cause.
+Files: aic8800_fdrv/aicwf_txrxif.c, WORKTREE_CHANGELOG.md, Chinese change record.
+Base: 3a8423f; original source tree, no new branch/worktree.
+Change: validate received header, full data/config span, IPC envelope and APM_START_CFM size; release rejected aggregate through existing common cleanup.
+Protected: kernel #244, DTS, firmware, pool64, 20KiB aggregation, realtime workers, native rotation player.
+Build: pending; exact release 5.7.1 required, incremental external modules only.
+Deploy: none. Existing isolated loader bb2d68ed26fbb8d3cee554af0aa7735a and fdrv 79e0745c08713e96fd6f3766b589c84f retained.
+Tests: pending; registration/GO before phone and player. Acceptance count zero.

@@ -562,6 +562,8 @@ int aicwf_process_rxframes(struct aicwf_rx_priv *rx_priv)
 //#endif
 #ifdef CONFIG_PREALLOC_RX_SKB
     struct rx_buff *buffer = NULL;
+    unsigned int frame_span;
+    struct ipc_e2a_msg *ipc_msg;
     if(aicwf_usb_rx_aggr){
         while (1) {
             spin_lock_irqsave(&rx_priv->rxqlock, flags);
@@ -582,16 +584,24 @@ int aicwf_process_rxframes(struct aicwf_rx_priv *rx_priv)
             while(aicwf_another_ptk_1(buffer)) {
                 cnt++;
                 data = buffer->read;
+                if (buffer->len < 4) {
+                    printk(KERN_ERR "aic8800: rx header truncated remaining=%u\n",
+                           buffer->len);
+                    break;
+                }
                 pkt_len = (*data | (*(data + 1) << 8));
                 //printk("%s cnt:%d pkt_len:%d \r\n", __func__, cnt, pkt_len);
-#ifndef CONFIG_USB_RX_REASSEMBLE
-                if (pkt_len > buffer->len) {
-                    AICWFDBG(LOGERROR, "%s pkt_len:%d buffer->len:%d\r\n", __func__, pkt_len, buffer->len);
-                    aicwf_prealloc_rxbuff_free(buffer, &rx_priv->rxbuff_lock);
-                    atomic_dec(&rx_priv->rx_cnt);
-                    return -EBADE;
+                if ((data[2] & USB_TYPE_CFG) != USB_TYPE_CFG)
+                    frame_span = (unsigned int)pkt_len + RX_HWHRD_LEN;
+                else
+                    frame_span = roundup((unsigned int)pkt_len,
+                                         RX_ALIGNMENT) + 4;
+                if (frame_span > buffer->len ||
+                    frame_span > buffer->end - buffer->read) {
+                    printk(KERN_ERR "aic8800: rx frame rejected type=%02x payload=%u span=%u remaining=%u\n",
+                           data[2], pkt_len, frame_span, buffer->len);
+                    break;
                 }
-#endif
 
                 if((data[2] & USB_TYPE_CFG) != USB_TYPE_CFG) { // type : data
                     aggr_len = pkt_len + RX_HWHRD_LEN;
@@ -612,6 +622,12 @@ int aicwf_process_rxframes(struct aicwf_rx_priv *rx_priv)
                 }
                 else { //  type : config
                     aggr_len = pkt_len;
+                    if ((data[2] & 0x7f) == USB_TYPE_CFG_CMD_RSP &&
+                        pkt_len < offsetof(struct ipc_e2a_msg, param)) {
+                        printk(KERN_ERR "aic8800: rx IPC header rejected payload=%u\n",
+                               pkt_len);
+                        break;
+                    }
                     if (aggr_len & (RX_ALIGNMENT - 1))
                         adjust_len = roundup(aggr_len, RX_ALIGNMENT);
                     else
@@ -625,8 +641,28 @@ int aicwf_process_rxframes(struct aicwf_rx_priv *rx_priv)
                     }
                     memcpy(msg, data, aggr_len + 4);
 
-                    if(((*(msg + 2) & 0x7f) == USB_TYPE_CFG_CMD_RSP) && (rx_priv->usbdev->bus_if->state != (int)USB_DOWN_ST))
-                        rwnx_rx_handle_msg(rx_priv->usbdev->rwnx_hw, (struct ipc_e2a_msg *)(msg + 4));
+                    if(((*(msg + 2) & 0x7f) == USB_TYPE_CFG_CMD_RSP) && (rx_priv->usbdev->bus_if->state != (int)USB_DOWN_ST)) {
+                        ipc_msg = (struct ipc_e2a_msg *)(msg + 4);
+                        if (ipc_msg->param_len > pkt_len -
+                            offsetof(struct ipc_e2a_msg, param) ||
+                            ipc_msg->param_len > sizeof(ipc_msg->param)) {
+                            printk(KERN_ERR "aic8800: rx IPC length rejected id=%04x param=%u payload=%u\n",
+                                   ipc_msg->id, ipc_msg->param_len, pkt_len);
+                            kfree(msg);
+                            break;
+                        }
+                        if (ipc_msg->id == APM_START_CFM) {
+                            printk(KERN_INFO "aic8800: AP start confirmation param=%u expected=%zu\n",
+                                   ipc_msg->param_len,
+                                   sizeof(struct apm_start_cfm));
+                            if (ipc_msg->param_len !=
+                                sizeof(struct apm_start_cfm)) {
+                                kfree(msg);
+                                break;
+                            }
+                        }
+                        rwnx_rx_handle_msg(rx_priv->usbdev->rwnx_hw, ipc_msg);
+                    }
 
                     if((*(msg + 2) & 0x7f) == USB_TYPE_CFG_DATA_CFM)
                         aicwf_usb_host_tx_cfm_handler(&(rx_priv->usbdev->rwnx_hw->usb_env), (u32 *)(msg + 4));
@@ -1355,4 +1391,3 @@ bool aicwf_rxbuff_enqueue(struct device *dev, struct rx_frame_queue *rxq, struct
     }
 }
 #endif
-
