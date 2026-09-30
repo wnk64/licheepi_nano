@@ -1,3 +1,19 @@
+## 2026-09-30 / planned / BS one-bit SDIO IRQ polling
+Base2360bde; running #247 zImage75da971, complete source/config/artifacts tagged
+bs-before-sdio-poll-20260930 and archived at bs_before_sdio_poll_20260930.
+Hypothesis:one-bit SDIO transfer wiring lacks DAT1, but host still advertises
+MMC_CAP_SDIO_IRQ; core sleeps for interrupts that cannot arrive, scans return
+empty. Optional DT property allwinner,sdio-irq-polling clears that capability
+after mmc_of_parse, selecting the existing core polling thread (10ms idle).
+Files:drivers/mmc/host/sunxi-mmc.c, binding docs, logs; BS external DTS opts in.
+Protected:MMC0 does not have property; SD/rootfs and all other hosts retain
+original behavior. No MUSB/AIC/display changes. Retain6MHz from previous test.
+Build:original incrementalzImage/modules, ARCHarm Linaro7.2.1 LOCALVERSION=,
+release5.7.1 in tmux; rebuild externals against matching kernel, collect hashes.
+Rollback:board #247 kernel/6MHz DTB retained separately before deployment.
+Tests:BS scan first, then WLAN association; SD/AIC/RTC/display checks. Pending,
+no stable acceptance or GitHub push; user hardware not altered.
+
 ## 2026-09-30 / planned / headphone default and disable I2S
 Base:695543f, native kernel source unchanged from #246; original #246 and BT
 candidate source/config/artifacts separately archived. Tag before-headphone-dtb-20260930.

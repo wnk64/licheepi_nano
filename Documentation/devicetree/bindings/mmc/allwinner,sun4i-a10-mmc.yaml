@@ -78,6 +78,12 @@ properties:
   reset-names:
     const: ahb
 
+  allwinner,sdio-irq-polling:
+    type: boolean
+    description:
+      Use MMC core SDIO interrupt polling when the card DAT1 interrupt signal
+      is not wired to the controller. This does not alter the data bus width.
+
 required:
   - compatible
   - reg

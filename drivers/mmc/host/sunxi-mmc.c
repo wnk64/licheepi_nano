@@ -1408,6 +1408,12 @@ static int sunxi_mmc_probe(struct platform_device *pdev)
 	if (ret)
 		goto error_free_dma;
 
+	/* A one-bit SDIO bus still needs DAT1 for hardware interrupt signaling. */
+	if (of_property_read_bool(pdev->dev.of_node, "allwinner,sdio-irq-polling")) {
+		mmc->caps &= ~MMC_CAP_SDIO_IRQ;
+		dev_info(&pdev->dev, "SDIO IRQ polling enabled (DAT1 not connected)\n");
+	}
+
 	/*
 	 * If we don't support delay chains in the SoC, we can't use any
 	 * of the higher speed modes. Mask them out in case the device
