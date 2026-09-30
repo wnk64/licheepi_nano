@@ -12,6 +12,11 @@ Optional property:
 - #clock-cells: Should be 0.
 - clock-output-names:
   overwrite the default clock name "pcf8563-clkout"
+- nxp,keep-clkout: Preserve the existing CLKOUT register during probe and
+  prevent the common clock framework from disabling an unused output. This
+  board-specific extension supports an always-on wireless reference clock.
+- interrupts: The alarm interrupt. Its specified trigger type is honored,
+  including falling-edge interrupts routed through a PCA953x GPIO expander.
 
 Example:
 

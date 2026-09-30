@@ -1,3 +1,13 @@
+## 2026-09-30 / planned / PCF8563 RTC and IP5209 DT binding
+Base:963147c with complete source/config and matching #245 kernel/DTB; local tag baseline-tca-before-rtc-ip5209-20260930 and archive /home/wnk/F1C200S_archives/rtc_ip5209_baseline_20260930.
+Files:.config, drivers/rtc/rtc-pcf8563.c, Documentation/devicetree/bindings/rtc/pcf8563.txt, new suniv-f1c100s-licheepi-nano-rtc-ip5209.dts, this log and Chinese record.
+Hardware:user schematic, PCF8563@0x51 on existing PE11/PE12 I2C0, alarmINT through PCA9555 P17/offset15 to PE5. CLKOUT feeds RTL8723DS, existing register0x0d=0xa4. IP5209@0x75 (manual8-bit0xEA), L3 unconnected, no IRQ invented.
+Change:enable RTC_CLASS/PCF8563/HCTOSYS; honor preconfigured IRQ trigger instead of forcing LEVEL_LOW on a PCA953x edge-only child; optional nxp,keep-clkout skips the destructive probe CLKOUT clear and sets CLK_IGNORE_UNUSED. Add nodes in a separate DTS including the TCA candidate.
+Protected:TCA GPIO/IRQ, existing AIC auto-network, USB/display/audio, IP5209 boost/battery chemistry settings.
+Build:original Linaro7.2.1, exact release5.7.1 LOCALVERSION=, incremental zImage/modules/candidateDTB, tmux. External IP5209 module built in the original driver repository.
+Deploy/rollback:keep #245 zImage and TCA DTB; SSH-only transfer/checksums and filesystem boot copy. User requested focused driver verification, no further network stress or cold-boot campaigns.
+Decision:pending.
+
 ## 2026-09-30 / planned / new board TCA9555 on I2C0
 Base: 7d8b46c; running zImage MD5 6cdbe5ca0485dc187751f1dee1682a2c; DTB 81c73b94251e2e48e8ba1f65c082dbb5; both match this original source tree.
 Source preservation: local tag baseline-newboard-before-tca9555-20260930 and source.bundle, .config, generated prerequisite tar, vmlinux, System.map, zImage and DTB at /home/wnk/F1C200S_archives/kernel_7d8b46c_newboard_20260930. No remote push per user instruction.
@@ -14,7 +24,9 @@ Build result: /tmp/f1-tca9555-build-0930.rc contains numeric 0; log ends Kernel:
 Modules: sunxi.ko cf1d3dca576543161957efe0d33d121d and phy-generic.ko 3103db03a0bfe371ddd30922cfbeff28 remain unchanged; vermagic 5.7.1 mod_unload ARMv5 p2v8.
 Deployment: old board zImage/DTB copied to /root/aic_miracast/candidates/tca9555_20260930/rollback; hashes match baseline. Candidate transferred via SCP, hashes verified; FAT files replaced, verified and unmounted before reboot.
 Measured: software reboot kernel5.7.1 #245, boot_id 0dcac36c-971b-4729-af4d-f9c2f98969fd. i2c-0 and 0-0020 bind to pca953x; gpiochip400 exposes 16 lines, all read direction=in/value=1 via driver and were unexported after observation. PE5 IRQ69 registered as sunxi_pio_level hwirq37, handler0-0020, count1; I2C controller IRQ31 hwirq7, count319 after GPIO reads. This verifies registration and a startup parent interrupt, not a user input transition.
-Regression: AIC auto-service boot success and SSH at 192.168.2.5. No output GPIO driven. Three physical cold boots and explicit input-transition IRQ test pending; candidate not accepted as stable.
+Regression: AIC auto-service boot success and SSH at 192.168.2.5. No output GPIO driven. Software-boot network regression121/121 replies, zero loss, min/avg/max3/16/513ms; 32MiB SSH download rc=0, same boot ID and USB device2, no new disconnect.
+First user-confirmed physical cold reboot: boot_id f4e3790f-5c2e-452d-9232-a9b3a2e41dbf. AIC8d80->8d83 device3, automatic WPA/DHCP/SSH with no serial networking intervention. TCA0-0020/pca953x, gpiochip400/ngpio16 and parentIRQ69 persist. P00 edge=both successfully registered nestedIRQ128 (0-0020 offset0); direction=input, value1; edge removed and GPIO unexported afterward. No actual input edge generated; remaining cold cycles and input-transition test pending. Not stable acceptance.
+Final cold-boot observation: 61/61 ping replies, zero loss, min/avg/max3/29/529ms. pinctrl reports PE11 and PE12 owned by1c27000.i2c with i2c0 function; PE5 owned by0-0020 with gpio_in function. Debugfs mount removed after inspection. No temporary GPIO exports remain.
 
 ## 2026-09-22 / planned / MUSB disconnect unlink guard
 Hypothesis: AIC/RTL USB disconnect under Miracast calls musb_urb_dequeue with urb->ep already NULL. usb_hcd_check_unlink_urb dereferences urb->ep and crashes usb_hub_wq, as captured on COM6 at usb_hcd_check_unlink_urb+0x18 from musb_urb_dequeue.

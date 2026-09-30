@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR X11)
+#include "suniv-f1c100s-licheepi-nano-tca9555.dts"
+
+/ {
+    aliases {
+        rtc0 = &pcf8563;
+    };
+};
+
+&newboard_i2c0 {
+    pcf8563: rtc@51 {
+        compatible = "nxp,pcf8563";
+        reg = <0x51>;
+        interrupt-parent = <&tca9555>;
+        interrupts = <15 IRQ_TYPE_EDGE_FALLING>;
+        #clock-cells = <0>;
+        clock-output-names = "rtcout-32768";
+        nxp,keep-clkout;
+        wakeup-source;
+    };
+
+    ip5209: power-management@75 {
+        compatible = "injoinic,ip5209";
+        reg = <0x75>;
+    };
+};

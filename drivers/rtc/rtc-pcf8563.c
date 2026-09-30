@@ -13,6 +13,7 @@
 
 #include <linux/clk-provider.h>
 #include <linux/i2c.h>
+#include <linux/irq.h>
 #include <linux/bcd.h>
 #include <linux/rtc.h>
 #include <linux/slab.h>
@@ -487,15 +488,19 @@ static struct clk *pcf8563_clkout_register_clk(struct pcf8563 *pcf8563)
 	int ret;
 	unsigned char buf;
 
-	/* disable the clkout output */
-	buf = 0;
-	ret = pcf8563_write_block_data(client, PCF8563_REG_CLKO, 1, &buf);
-	if (ret < 0)
-		return ERR_PTR(ret);
+	/* Some boards use CLKOUT as an always-on wireless reference. */
+	if (!of_property_read_bool(node, "nxp,keep-clkout")) {
+		buf = 0;
+		ret = pcf8563_write_block_data(client, PCF8563_REG_CLKO, 1, &buf);
+		if (ret < 0)
+			return ERR_PTR(ret);
+	}
 
 	init.name = "pcf8563-clkout";
 	init.ops = &pcf8563_clkout_ops;
 	init.flags = 0;
+	if (of_property_read_bool(node, "nxp,keep-clkout"))
+		init.flags |= CLK_IGNORE_UNUSED;
 	init.parent_names = NULL;
 	init.num_parents = 0;
 	pcf8563->clkout_hw.init = &init;
@@ -571,9 +576,14 @@ static int pcf8563_probe(struct i2c_client *client,
 	pcf8563->rtc->set_start_time = true;
 
 	if (client->irq > 0) {
+		unsigned long irqflags = IRQF_SHARED | IRQF_ONESHOT;
+
+		/* Respect an edge-triggered GPIO expander's DT interrupt type. */
+		if (!irq_get_trigger_type(client->irq))
+			irqflags |= IRQF_TRIGGER_LOW;
 		err = devm_request_threaded_irq(&client->dev, client->irq,
 				NULL, pcf8563_irq,
-				IRQF_SHARED | IRQF_ONESHOT | IRQF_TRIGGER_LOW,
+				irqflags,
 				pcf8563_driver.driver.name, client);
 		if (err) {
 			dev_err(&client->dev, "unable to request IRQ %d\n",
