@@ -14,6 +14,21 @@ Baseline size: text7904381 data2008332 bss255272 =10167985 bytes.
 Baseline .config0361a6dd67d2d74f23dcb147148e8d38 / zImage2d16ba197f384e0570071aabf2094c44.
 Board keeps current playback and artifacts. Compile-only candidate, no deployment
 or GitHub push; future acceptance requires full protected regression/cold cycles.
+Sourcea62a764, normalized configc7a1ff0a78afa0d5858817e6d28fe094.
+Kconfig removes only disabled options and exclusive CEC/VMALLOC/TPG dependencies;
+protected config comparison identical. tmuxf1-slim-1001 build.rc numeric0;
+zImage64739afc046149ef029e5e4819e03e92, vmlinux7c038f11b0a30d70df75feee7dabc6ae,
+System.map998a9129d20d2aa81caa66af838359ea, release5.7.1.
+Size7654722 text+1906912 data+254472 bss=9816106; saves351879 bytes(~344KiB)
+static image vs baseline; do not double-count the~6.4MiB runtime test buffers
+already released on the live board. Core sunxi/phy/BS/btrtl/Cedar/ION modules
+byte-identical and vermagic5.7.1. Matching candidate sources/config/artifacts
+and generated prerequisites archived under kernel_slim_20261001/candidate.
+Cross-component compatibility: helperca485c2 identifies test cards by ID rather
+than fixedC0/C1, since Codec becomes card0 without Dummy/Loopback. Helper0dcd3f8
+deployed and idempotent prepare verified during casting; video/SSH unchanged.
+Kernel NOT deployed; live board remains#248, DTB50499cb, poolplayer1259e0f3.
+Decision: compile-verified pending candidate, cold/regression acceptance0/3.
 
 ## 2026-09-30 / planned / BS one-bit SDIO IRQ polling
 Base2360bde; running #247 zImage75da971, complete source/config/artifacts tagged
