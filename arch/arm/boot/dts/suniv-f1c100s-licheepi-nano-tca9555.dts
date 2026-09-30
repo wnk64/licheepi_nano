@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR X11)
+#include "suniv-f1c100s-licheepi-nano.dts"
+
+/ {
+    aliases {
+        i2c0 = &newboard_i2c0;
+    };
+};
+
+&pio {
+    newboard_i2c0_pins: newboard-i2c0-pins {
+        pins = "PE11", "PE12";
+        function = "i2c0";
+    };
+
+    tca9555_irq_pin: tca9555-irq-pin {
+        pins = "PE5";
+        function = "gpio_in";
+        bias-pull-up;
+    };
+};
+
+&{/soc} {
+    newboard_i2c0: i2c@1c27000 {
+        compatible = "allwinner,suniv-f1c100s-i2c", "allwinner,sun6i-a31-i2c";
+        reg = <0x01c27000 0x400>;
+        interrupts = <7>;
+        clocks = <&ccu CLK_BUS_I2C0>;
+        resets = <&ccu RST_BUS_I2C0>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&newboard_i2c0_pins>;
+        clock-frequency = <100000>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+        status = "okay";
+
+        tca9555: gpio@20 {
+            compatible = "ti,tca9555", "nxp,pca9555";
+            reg = <0x20>;
+            vcc-supply = <&reg_vcc3v3>;
+            pinctrl-names = "default";
+            pinctrl-0 = <&tca9555_irq_pin>;
+            gpio-controller;
+            #gpio-cells = <2>;
+            interrupt-parent = <&pio>;
+            interrupts = <4 5 IRQ_TYPE_LEVEL_LOW>;
+            interrupt-controller;
+            #interrupt-cells = <2>;
+            gpio-line-names = "P00", "P01", "P02", "P03",
+                              "P04", "P05", "P06", "P07",
+                              "P10", "P11", "P12", "P13",
+                              "P14", "P15", "P16", "P17";
+        };
+    };
+};

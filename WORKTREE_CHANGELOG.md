@@ -1,3 +1,15 @@
+## 2026-09-30 / planned / new board TCA9555 on I2C0
+Base: 7d8b46c; running zImage MD5 6cdbe5ca0485dc187751f1dee1682a2c; DTB 81c73b94251e2e48e8ba1f65c082dbb5; both match this original source tree.
+Source preservation: local tag baseline-newboard-before-tca9555-20260930 and source.bundle, .config, generated prerequisite tar, vmlinux, System.map, zImage and DTB at /home/wnk/F1C200S_archives/kernel_7d8b46c_newboard_20260930. No remote push per user instruction.
+Hypothesis: the existing PCA953x driver supports TCA9555 register layout and nested GPIO IRQs when GPIO_PCA953X and GPIO_PCA953X_IRQ are enabled.
+Files: .config; arch/arm/boot/dts/suniv-f1c100s-licheepi-nano-tca9555.dts; this log and Chinese change record.
+Hardware: PE11=SCL, PE12=SDA on I2C0 at 0x01c27000 IRQ7; PE5=active-low INT. A0/A1/A2 grounded, address 0x20. External pullups confirmed by user.
+Protected: existing display/audio/USB nodes and MUSB/AIC source; use a separate candidate DTS including the unchanged board DTS. No new worktree.
+Build: incremental kernel/DTB, original Linaro 7.2.1 toolchain, ARCH=arm CROSS_COMPILE=/opt/gcc-linaro-7.2.1-2017.11-x86_64_arm-linux-gnueabi/bin/arm-linux-gnueabi- LOCALVERSION=; preflight and release 5.7.1 required.
+Deploy and rollback: pending; original kernel and DTB preserved, SSH-only copy and hash verification before boot selection.
+Tests: I2C0 probe, address 0x20 binding, 16 input lines, PE5 IRQ; new-board AIC SSH regression. Three physical cold boots pending; no old-board topology assumed.
+Decision: pending.
+
 ## 2026-09-22 / planned / MUSB disconnect unlink guard
 Hypothesis: AIC/RTL USB disconnect under Miracast calls musb_urb_dequeue with urb->ep already NULL. usb_hcd_check_unlink_urb dereferences urb->ep and crashes usb_hub_wq, as captured on COM6 at usb_hcd_check_unlink_urb+0x18 from musb_urb_dequeue.
 Files: drivers/usb/musb/musb_host.c, WORKTREE_CHANGELOG.md
