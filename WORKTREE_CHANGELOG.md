@@ -12,6 +12,16 @@ current board DTB/asound/mixer recorded in /root/aic_miracast/candidates/headpho
 Protected:SD boot/rootfs, display, MUSB/AIC, RTC/IP; no BT candidate kernel deployment.
 Decision:pending direct verification; no stress/cold campaigns or stable acceptance.
 
+Sourceb1deb8b; runtime2359092. DTB build success MD5
+670b67cf44be2d21acdca82dab9e3d4b; deployed only DTB on unchanged #246 kernel.
+OldDTB c9904bd6d2e90634e165895928f804c6 retained in board candidate/rollback;
+FAT replacement checked and unmounted. Source/config/zImage modules unchanged
+except newDTS and logs; current .config remains the un-deployed BT candidate.
+Software boot51098f04-9c36-427e-9e42-ccc1322483b5 shows I2S disabled, Codec
+registered, default ALSA PCM passes1s48kHz stereo silence; headphone switchon,
+volume40/63. SSH/AIC, card0, rtc0, TCA registrations preserved. No audible
+acceptance/physical cold cycles claimed. Archive:headphone_20260930.
+
 ## 2026-09-30 / planned / RTL8723DS UART Bluetooth prerequisites
 Base:d7e967964089727e2e12c55faa5dfec7f6b8ce6d, full source/config backed by #246 artifacts.
 Rollback:tag rtl8723ds-bt-before-serdev-20260930; full kernel bundle and current config/vmlinux/System.map/zImage/DTB at /home/wnk/F1C200S_archives/rtl8723ds_bt_baseline_20260930.
