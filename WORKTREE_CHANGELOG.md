@@ -1,5 +1,20 @@
 # Worktree Change Log
 
+## 2026-09-30 / planned / opt-in private CMA arena
+Historical provenance resolved: reconstruct main.o using drm_warpper.h from
+3993c9b parent; compile all other sources with current header. Exact ELF MD5
+11386abeb2137bfb3f28c47832b05552 reproduced, not an approximated binary.
+Save existing dirty source as a dedicated snapshot commit, preserving objects.
+Candidate: Makefile header dependencies; optional raw-H264 CMA pool adapter.
+One arena with page-aligned suballocations, physical/cache operations delegated
+to the verified original ION adapter; no reference frame/VBV reduction.
+InitializeVideoDecoder replaces vConfig.memops, so wrap the process-private
+adapter table returned by MemAdapterGetOpsS, not only the caller config pointer.
+Only explicit CEDAR_CMA_POOL_MB enables it, default remains original allocation.
+Protected: active casting untouched, native90degree display, AIC/BS/BT/kernel.
+Tests: allocator mock tests, deterministic ARM builds, isolated player candidate.
+Rollback: active player11386ab, preflight complete archive; no default replacement.
+
 Worktree: /home/wnk/f1c200s_display_480x800_candidate_20260914
 Component: native Cedar rotation player
 Base: 0569026 plus existing dirty source/objects; reproduction gate failed

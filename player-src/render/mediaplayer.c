@@ -1488,9 +1488,11 @@ int mediaplayer_start(mediaplayer_t *mp)
     vConfig.nVbvBufferSize = VBVBUFFERSIZE;
     vConfig.bRotationEn = rotate_90;
     vConfig.nRotateDegree = rotate_90 ? 1 : 0;
-    vConfig.nRotateHoldingFrameBufferNum = rotate_90 ? 2 : BUF_CNT_4_ROTATE;
-    log_info("Cedar rotation request=%d output=%dx%d native mount", rotate_90,
-             output_width, output_height);
+    /* Rotation needs a second frame pool, but no extra held frames. */
+    vConfig.nRotateHoldingFrameBufferNum = BUF_CNT_4_ROTATE;
+    log_info("Cedar rotation request=%d output=%dx%d native mount rotate_hold=%d",
+             rotate_90, output_width, output_height,
+             vConfig.nRotateHoldingFrameBufferNum);
 
     ret = InitializeVideoDecoder(mp->decoder, &vInfo, &vConfig);
     if (ret != 0) {
