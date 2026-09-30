@@ -1,3 +1,14 @@
+## 2026-09-30 / planned / RTL8723DS UART Bluetooth prerequisites
+Base:d7e967964089727e2e12c55faa5dfec7f6b8ce6d, full source/config backed by #246 artifacts.
+Rollback:tag rtl8723ds-bt-before-serdev-20260930; full kernel bundle and current config/vmlinux/System.map/zImage/DTB at /home/wnk/F1C200S_archives/rtl8723ds_bt_baseline_20260930.
+Hypothesis:enable serdev/TTY controller and HCIUART H5 Realtek configuration for an external staged RTL8723DS UART driver. Hardware not installed; compile-only preparation.
+Files:.config, this log, Chinese change record. No kernel driver source or active DTS edits.
+External adaptation:/home/wnk/LicheePi_Nano/third_party/rtl8723ds/f1c200s/newboard_20260930/bluetooth; native5.7.1 H5 copied and staged outside kernel per external-driver policy.
+Protected:UART0 console, MMC0/rootfs, existing MUSB/AIC, display/Cedar/ION, I2C/RTC/IP5209. UART2/BT enabled only by separate candidate DTB.
+Build:original toolchain ARCH=arm LOCALVERSION=, release5.7.1; incremental zImage/modules plus external HCIUART and combined DTB in tmux. No clean/mrproper, alternate O= or new worktree.
+Deployment:none; running #246 remains untouched. No GitHub push or acceptance claim.
+Commit/build/hashes:pending.
+
 ## 2026-09-30 / planned / PCF8563 RTC and IP5209 DT binding
 Base:963147c with complete source/config and matching #245 kernel/DTB; local tag baseline-tca-before-rtc-ip5209-20260930 and archive /home/wnk/F1C200S_archives/rtc_ip5209_baseline_20260930.
 Files:.config, drivers/rtc/rtc-pcf8563.c, Documentation/devicetree/bindings/rtc/pcf8563.txt, new suniv-f1c100s-licheepi-nano-rtc-ip5209.dts, this log and Chinese record.
