@@ -14,6 +14,23 @@ Only explicit CEDAR_CMA_POOL_MB enables it, default remains original allocation.
 Protected: active casting untouched, native90degree display, AIC/BS/BT/kernel.
 Tests: allocator mock tests, deterministic ARM builds, isolated player candidate.
 Rollback: active player11386ab, preflight complete archive; no default replacement.
+Snapshot00bb212, immutable tagplayer-before-cma-pool-20260930; preserved user's
+preexisting source changes separately from the arena implementationa9a4ad6.
+Real-test sourced5254ca. ARM candidate1259e0f3f151a06fc2270ff885dc4443;
+two make -B/-j4 and strip runs identical. Host ASan/UBSan tests pass, including
+4 threads/2000 suballocations, alignment/reuse/full pool/native fallback and
+invalid frees; no reference frame or VBV reduction.
+Board MemAdapter MD5 f67be6bb553890ae32c35bdcf05fae72 matches build dependency.
+First isolated real7MiB test while old decoder running failed with PFNs busy;
+pool used native fallback; strict contiguous test aborted, OS released all
+temporary allocations. Old playback unaffected; ION returned6799360 bytes.
+User approved one interruption. Stopped old sink2234/player1719 gracefully;
+ION0/CMAused1072 pages. Repeated real test succeeded: 33 suballocations,
+CPU/VE offset and CPU reverse mapping/cache/reuse checks; peak6799360,
+capacity7340032, allocations34, fallback0, live0 after release; CMAused1072.
+Started candidate6588 with CEDAR_CMA_POOL_MB=7, 90degree/native640x480@60;
+one arena reserved. RTSP watcher6589, same GO/AIC and BS route; awaiting phone.
+No current default player overwritten, no boot/kernel/module changes.
 
 Worktree: /home/wnk/f1c200s_display_480x800_candidate_20260914
 Component: native Cedar rotation player
