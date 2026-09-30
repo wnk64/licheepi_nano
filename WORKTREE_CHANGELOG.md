@@ -1,3 +1,20 @@
+## 2026-10-01 / planned / remove unused test and foreign-platform drivers
+Base165df40, tagkernel-before-slim-20261001, complete source/config/artifacts
+preserved under /home/wnk/F1C200S_archives/kernel_slim_20261001/before.
+Hypothesis: eliminate virtual video/audio buffers at boot and unnecessary
+resident driver code without changing active hardware or casting behavior.
+Only .config: disable VIVID/VIMC, SND_DUMMY/ALOOP, Cadence/ASPEED/Xilinx,
+SH_VEU, sun6iCSI and sun8i deinterlace/rotate (not F1 Cedar rotation).
+Normalize Kconfig dependencies and inspect exact diff before committing.
+Protected: MUSB/AIC, MMC0/MMC1 BS, H5/BT, Codec, Cedar/ION/DRM/panel/PWM,
+RTC/I2C/GPIO, CMA24MiB, fbdev200%, serial slots and NFS unchanged.
+Build only in original tree, GCC Linaro7.2.1, ARCHarm LOCALVERSION= release5.7.1;
+tmux carries incremental zImage/modules builds; no clean, mrproper or newworktree.
+Baseline size: text7904381 data2008332 bss255272 =10167985 bytes.
+Baseline .config0361a6dd67d2d74f23dcb147148e8d38 / zImage2d16ba197f384e0570071aabf2094c44.
+Board keeps current playback and artifacts. Compile-only candidate, no deployment
+or GitHub push; future acceptance requires full protected regression/cold cycles.
+
 ## 2026-09-30 / planned / BS one-bit SDIO IRQ polling
 Base2360bde; running #247 zImage75da971, complete source/config/artifacts tagged
 bs-before-sdio-poll-20260930 and archived at bs_before_sdio_poll_20260930.
