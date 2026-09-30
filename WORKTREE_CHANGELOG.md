@@ -7,7 +7,18 @@ External adaptation:/home/wnk/LicheePi_Nano/third_party/rtl8723ds/f1c200s/newboa
 Protected:UART0 console, MMC0/rootfs, existing MUSB/AIC, display/Cedar/ION, I2C/RTC/IP5209. UART2/BT enabled only by separate candidate DTB.
 Build:original toolchain ARCH=arm LOCALVERSION=, release5.7.1; incremental zImage/modules plus external HCIUART and combined DTB in tmux. No clean/mrproper, alternate O= or new worktree.
 Deployment:none; running #246 remains untouched. No GitHub push or acceptance claim.
-Commit/build/hashes:pending.
+Commit:b13545feddc031e08bb629fa8b3b942a910bacee; source diff only config and records.
+Build:tmux f1-rtl8723ds-bt-0930 via external build-bluetooth.sh, numeric rc0,
+release5.7.1. ConfigMD5=0361a6dd67d2d74f23dcb147148e8d38.
+zImageMD5=75da971835ca3339b47eb649c2cf6697; combinedDTB=7f26f842d7180355a6e07c398ecb8ef7.
+External hci_uartMD5=63b62d1042dbacffdaec40acb1d83848; btrtlMD5=0761a0b2bd090aace818954b8254ca5e.
+Matched MUSB/PHY/Cedar/ION module hashes unchanged vs #246. All7candidate modules
+vermagic5.7.1. Firmware/config SHA and UART settings checked; DTB serial/pins/GPIO/clock checked.
+Kernel symbols now include __serdev_device_driver_register and tty_port_register_device_attr_serdev.
+Archive:/home/wnk/F1C200S_archives/rtl8723ds_bt_candidate_20260930, full source bundles/config/artifacts/generated prerequisites.
+Decision:compile verified, pending hardware; no board deployment or reboot. Native
+hci_uart built by kernel is NOT the deployment choice; use staged external module
+with the RTL8723DS match from the candidate package. No blanket modules_install.
 
 ## 2026-09-30 / planned / PCF8563 RTC and IP5209 DT binding
 Base:963147c with complete source/config and matching #245 kernel/DTB; local tag baseline-tca-before-rtc-ip5209-20260930 and archive /home/wnk/F1C200S_archives/rtc_ip5209_baseline_20260930.
