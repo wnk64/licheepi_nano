@@ -6,7 +6,9 @@ Change:enable RTC_CLASS/PCF8563/HCTOSYS; honor preconfigured IRQ trigger instead
 Protected:TCA GPIO/IRQ, existing AIC auto-network, USB/display/audio, IP5209 boost/battery chemistry settings.
 Build:original Linaro7.2.1, exact release5.7.1 LOCALVERSION=, incremental zImage/modules/candidateDTB, tmux. External IP5209 module built in the original driver repository.
 Deploy/rollback:keep #245 zImage and TCA DTB; SSH-only transfer/checksums and filesystem boot copy. User requested focused driver verification, no further network stress or cold-boot campaigns.
-Decision:pending.
+Source:b8b1d71; driverd7dfb13, startup94c2708. Numeric build rc=0; kernel5.7.1, zImage2b9b8cf3f41d88fc7182be2c63bcdf22, DTBc9904bd6d2e90634e165895928f804c6. Matched rebuilt sunxif9e4d79850a9ed80dbf8b965a2df2014 in both module paths; cedar53126e9c2cffa4c66e5634f99e15f3f9 and ionfbed3af9de750c73cc77d599e9c55601 in extra. Old files retained in /root/aic_miracast/candidates/rtc_ip5209_20260930/rollback; FAT hashes verified and unmounted before reboot.
+Runtime:kernel5.7.1 #246, boot_id14a29e34-43f5-485b-8951-c17517b67ed2. RTC0-0051 and IP5209 0-0075 bind, /dev/rtc0 exists and alarm IRQ128 is nested PCA9555 offset15. RTC initial voltage-low flag cleared by setting PC UTC and writing /sbin/hwclock; time readback06:09:45 then06:12:04UTC confirms ticking. CLKOUT0x80 stays enabled32768Hz. IP power_supply reports battery voltage4506974uV, Charging, current limit2300000uA; VSET and charge/boost settings untouched. AIC automatic networking/SSH and existing panel/Cedar initialization succeed.
+Decision:implemented/deployed/directly verified; provisional, no stable archive or GitHub push. Per user instruction, no repeated stress, alarm-firing or cold-boot campaigns; actual alarm firing and RTC backup retention not claimed.
 
 ## 2026-09-30 / planned / new board TCA9555 on I2C0
 Base: 7d8b46c; running zImage MD5 6cdbe5ca0485dc187751f1dee1682a2c; DTB 81c73b94251e2e48e8ba1f65c082dbb5; both match this original source tree.
