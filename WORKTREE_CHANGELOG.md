@@ -1,3 +1,17 @@
+## 2026-09-30 / planned / headphone default and disable I2S
+Base:695543f, native kernel source unchanged from #246; original #246 and BT
+candidate source/config/artifacts separately archived. Tag before-headphone-dtb-20260930.
+Files:arch/arm/boot/dts/suniv-f1c100s-licheepi-nano-headphone.dts and logs only.
+Hypothesis:disable i2s, sound_i2s and pcm5102a nodes; preserve on-chip Codec and
+existing RTC/IP/TCA/display/AIC nodes. Runtime ALSA selects Codec by card ID,
+not numeric index, and initializes DAC/direct-headphone routing at volume40/63.
+Build:DTB only using original GCC preprocessor and kernel dtc, no zImage/modules
+or .config change; source committed before compile. Release5.7.1.
+Deploy:DTB only over unchanged running #246 kernel plus asound.conf and S20headphone;
+current board DTB/asound/mixer recorded in /root/aic_miracast/candidates/headphone_20260930/rollback.
+Protected:SD boot/rootfs, display, MUSB/AIC, RTC/IP; no BT candidate kernel deployment.
+Decision:pending direct verification; no stress/cold campaigns or stable acceptance.
+
 ## 2026-09-30 / planned / RTL8723DS UART Bluetooth prerequisites
 Base:d7e967964089727e2e12c55faa5dfec7f6b8ce6d, full source/config backed by #246 artifacts.
 Rollback:tag rtl8723ds-bt-before-serdev-20260930; full kernel bundle and current config/vmlinux/System.map/zImage/DTB at /home/wnk/F1C200S_archives/rtl8723ds_bt_baseline_20260930.

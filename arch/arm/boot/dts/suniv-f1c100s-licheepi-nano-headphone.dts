@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR X11)
+#include "suniv-f1c100s-licheepi-nano-rtc-ip5209.dts"
+
+&i2s {
+    status = "disabled";
+};
+
+&sound_i2s {
+    status = "disabled";
+};
+
+&pcm5102a {
+    status = "disabled";
+};
+
+&codec {
+    status = "okay";
+};
