@@ -14,6 +14,20 @@ Rollback:board #247 kernel/6MHz DTB retained separately before deployment.
 Tests:BS scan first, then WLAN association; SD/AIC/RTC/display checks. Pending,
 no stable acceptance or GitHub push; user hardware not altered.
 
+Implementatione7f7cc9, runtime128f43b; tmux f1-bs-poll-0930 numericrc0.
+zImage2d16ba197f384e0570071aabf2094c44, BS DTBd7016a6eeca0c2f0fa1c86adf90ae3b7;
+config unchanged0361a6dd67d2d74f23dcb147148e8d38. Package modules all5.7.1 and
+USB/PHY/Cedar/ION hashes identical to #247. Complete source/artifact/generated
+archive bs_poll_candidate_20260930, prior #247 kernel/6MHz DTB in boardpoll/rollback.
+SSH/FAT hashes verified, sync/unmount, software boot#248
+f81ecb68-9c36-427e-9e42-ccc1322483b5. MMC1 polling log present; low-speed
+Wi-Fi scan now returns30+2.4GHz networks, no MMC1 data errors. MMC0 SD root
+unchanged, AIC automaticSTA/SSH, codec2/card0/rtc0 registered. Native SDIO IRQ
+polling thread fixes missing events with unwiredDAT1;6MHz avoids observed
+25MHz transfer errors but timing/electrical root cause not definitively proven.
+BT fw download and UART hci0 UP/error0, inquiry sees PC. Association, BTspeaker
+audio/coexistence and physical cold-boot acceptance pending, not stable archive.
+
 ## 2026-09-30 / planned / headphone default and disable I2S
 Base:695543f, native kernel source unchanged from #246; original #246 and BT
 candidate source/config/artifacts separately archived. Tag before-headphone-dtb-20260930.
