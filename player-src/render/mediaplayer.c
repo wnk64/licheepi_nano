@@ -21,6 +21,7 @@
 #include "config.h"
 #include "driver/srgn_drm.h"
 #include "utils/misc.h"
+#include "utils/cedar_cma_pool.h"
 
 /* external cedarx plugin entry */
 extern void AddVDPlugin(void);
@@ -1580,7 +1581,23 @@ int mediaplayer_start_raw_h264(mediaplayer_t *mp, const char *path,
         log_error("MemAdapterGetOpsS err");
         return -1;
     }
-    CdcMemOpen(mp->memops);
+    const char *pool_env = getenv("CEDAR_CMA_POOL_MB");
+    if (pool_env && *pool_env) {
+        char *end;
+        errno = 0;
+        long mb = strtol(pool_env, &end, 10);
+        if (errno || *end || mb < 1 || mb > 16 ||
+            cedar_cma_pool_enable(mp->memops, (size_t)mb * 1024 * 1024) != 0) {
+            log_error("invalid or unavailable CEDAR_CMA_POOL_MB (expected 1..16)");
+            mp->memops = NULL;
+            return -1;
+        }
+    }
+    if (CdcMemOpen(mp->memops) < 0) {
+        log_error("CdcMemOpen failed");
+        mp->memops = NULL;
+        return -1;
+    }
 
     mp->decoder = CreateVideoDecoder();
     if (!mp->decoder) {
