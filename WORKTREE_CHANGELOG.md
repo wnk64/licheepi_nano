@@ -9,6 +9,12 @@ Build: incremental kernel/DTB, original Linaro 7.2.1 toolchain, ARCH=arm CROSS_C
 Deploy and rollback: pending; original kernel and DTB preserved, SSH-only copy and hash verification before boot selection.
 Tests: I2C0 probe, address 0x20 binding, 16 input lines, PE5 IRQ; new-board AIC SSH regression. Three physical cold boots pending; no old-board topology assumed.
 Decision: pending.
+Source commit: cf3cfbd; reproducible tmux build wrapper 0b74b53. olddefconfig selected only GPIOLIB_IRQCHIP plus the two requested PCA953x symbols; release exactly 5.7.1.
+Build result: /tmp/f1-tca9555-build-0930.rc contains numeric 0; log ends Kernel: arch/arm/boot/zImage is ready. Built zImage MD5 a2f140a094dcf101cf63df0e83041cc8; candidate DTB MD5 3cb146b45c1a63fa1059ffbf996e0315. vmlinux contains pca953x_probe and gpiochip_irqchip_add_key.
+Modules: sunxi.ko cf1d3dca576543161957efe0d33d121d and phy-generic.ko 3103db03a0bfe371ddd30922cfbeff28 remain unchanged; vermagic 5.7.1 mod_unload ARMv5 p2v8.
+Deployment: old board zImage/DTB copied to /root/aic_miracast/candidates/tca9555_20260930/rollback; hashes match baseline. Candidate transferred via SCP, hashes verified; FAT files replaced, verified and unmounted before reboot.
+Measured: software reboot kernel5.7.1 #245, boot_id 0dcac36c-971b-4729-af4d-f9c2f98969fd. i2c-0 and 0-0020 bind to pca953x; gpiochip400 exposes 16 lines, all read direction=in/value=1 via driver and were unexported after observation. PE5 IRQ69 registered as sunxi_pio_level hwirq37, handler0-0020, count1; I2C controller IRQ31 hwirq7, count319 after GPIO reads. This verifies registration and a startup parent interrupt, not a user input transition.
+Regression: AIC auto-service boot success and SSH at 192.168.2.5. No output GPIO driven. Three physical cold boots and explicit input-transition IRQ test pending; candidate not accepted as stable.
 
 ## 2026-09-22 / planned / MUSB disconnect unlink guard
 Hypothesis: AIC/RTL USB disconnect under Miracast calls musb_urb_dequeue with urb->ep already NULL. usb_hcd_check_unlink_urb dereferences urb->ep and crashes usb_hub_wq, as captured on COM6 at usb_hcd_check_unlink_urb+0x18 from musb_urb_dequeue.
