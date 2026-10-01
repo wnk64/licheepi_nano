@@ -59,6 +59,13 @@ AIC源码53bec9e的实际驱动位于 `drivers/aic8800`。
 依赖原Buildroot output/host、output/target/usr/lib及libcedarx-custom头文件。
 本地完整构建依赖包另存于Ubuntu归档目录，源码包在GitHub；工具链不冒充源码。
 
+补充源码：sources/panel.tar.gz保存实际外置屏幕驱动源码；sources/rtl-support.tar.gz
+保存RTL8723BS外置H5蓝牙和自研音频路由源码；sources/bluealsa.tar.gz及sbc-1.3.tar.xz
+保存完整BlueALSA/SBC来源。support-runtime.tar保存对应音频运行文件、插件及板端模块。
+Buildroot个人联网配置在归档中替换为YOUR_SSID/YOUR_PASSWORD模板，原工作树不改。
+SHA256SUMS包含本地全部归档项；GitHub不存374MiB SDK等大文件，使用manifest核对
+Ubuntu本地完整恢复包。GitHub仍保存所有列出的源码与有界恢复产物。
+
 ## 脚本与恢复
 
 `runtime.tar` 的旧cold-start脚本仍选择旧接收器42d0cfa8，仅用于追溯。
