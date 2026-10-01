@@ -1,5 +1,19 @@
 # Worktree Change Log
 
+## 2026-10-01 planned / one video handoff per received UDP batch
+Base4283000/core42d0cfa8, original tree branchcandidate/rx-video-handoff-20261001;
+exact baseline make -f Makefile.sink -B reproduces42d0cfa8. Rollback untouched.
+Files miracast_sink_dump.c/tests/test_rx_video_handoff.c, no worker/audio changes.
+Opt-in WFD_VIDEO_RX_BATCH=1 with asyncvideo accumulates <=16*RTP_MAX=32KiB
+parsed H264 from already-received batch, flushes at end/capacity; never waits
+for future datagrams. Existing128KiB queue/3ms worker/native90/pool9 unchanged.
+Hypothesis reduce per-packet mutex/notifier overhead without bitrate/quality
+reduction or disk capture. Count pending/peak/control-stop discard explicitly.
+Tests exact bytes/order/invalid/mixedPID/capacity/tail/error/control-stop ASan,
+old byte/EPIPE/RTSP/IDR, two ARM outputs; full AV actual cadence/CPU/RAM.
+Already trialed CMA20 separately and positive; both handoff control and candidate
+must use same20M, sameboot31071e77/playera683cf70/defaultBT/BS/AIC. Pending0/3.
+
 ## 2026-10-01 planned / reproduce current cold-start runtime
 Follow-up for user-requested CMA20 trial: previous power transition retained
 COM4 handle and ClearCommError failed. Change only host hub_cycle.py:
