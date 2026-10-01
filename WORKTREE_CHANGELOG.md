@@ -93,6 +93,14 @@ and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
 ## 2026-10-01 planned: bounded asynchronous FIFO delivery
+Implemented1de102b, exit-status fix083544c (explicit failed output returns1,
+not normal0). Host20lifecycle/exact-order/wrap/full/EPIPE/stop tests pass
+ASan/UBSan/leaks; existing RTP batch sanitizer and mock800 pass. Final ARM
+two builds equal99a700f8e1592a68d06d608ff983dfdd; final host regression rerun
+before staging. Old intermediate22b0eab is not deployed. g_h264_bytes in
+async mode counts submitted bytes; async written counter is actual output.
+Watcher enables WFD_VIDEO_ASYNC1 and chooses versioned sink by WFD_SINK;
+old runtime unchanged awaiting user disconnect, no force kill/reboot.
 Base7bc75cf/source548f939/f8a1058c and complete archive retained.
 Original branch candidate/async-fifo-20261001, no new worktree. Hypothesis:
 FIFO writes in receive loop delay audio/RTP; independent output worker can
