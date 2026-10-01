@@ -1,6 +1,18 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / opt-in monotonic FIFO coalescing
+Results FIFO_COALESCE_RESULTS_20261001.md. On1 240.450371s/10339commits/
+43.00Hz/max156842us; on2 210.316681s/10760commits/51.16Hz/max120992us;
+both zero gaps>250ms/errors0, not matched-phase or optical smoothness proof.
+Same-binary off option: CPU92.96..95.29%, worker738..820switches/s vs on1
+304..341 and on2 276..339/s. On2 CPU81.20..87.08% and sixdrop deltas0.
+Full Bluetooth PCM written38.5->39.8MB, FIFO full0, no kernel/driver/HCI reset.
+Off full player-log PSCP transfer assertion1525 failed/zero-byte result;
+only actual SSH-observed max733317us and surviving sink log cited. No fabricated
+off window/total. New immutable diagnostic snapshots transferred and removed.
+Current8743/8744/8790 kept with all3options1; cold0/3/not stable/no push.
+Next longer test plus exact cold-start pipeline/regressions, no further core
+change until current improvement and protected dependencies are validated.
 Additional test7ba416f (4KiB no wait + writer accounting) ran3 times ASan/
 UBSan pass. Build record5f5621c. Live player7954/watch7955/sink8008, enabled1,
 same boot/BT/WPA/BS/AIC. First six12.96..15.18s samples CPU82.94..89.31%,
