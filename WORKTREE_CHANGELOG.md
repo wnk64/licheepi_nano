@@ -93,6 +93,12 @@ and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
 ## 2026-10-01 planned: unattended cast-only session and read-only sampler
+Host tools require Python>=3.6 (f-string syntax); use existing WindowsPython,
+not VM16.04 Python3.5. First help check on VM failed before source commit;
+do not install or mislabel that as app/build failure. Local host help/tests
+used instead. Sampler first trial parsed UDPrefcount2 as inode; corrected
+column9, added fixture and identity-change tests. Old trial file is not
+validated socket-identity evidence; rerun corrected sampler for comparisons.
 Add tools/adb_cast_session.py, tools/board_sample.py on original sink tree,
 base10d2789/async99a700f8; no sink/runtime binary change. Session helper uses
 actual enabled target bounds, disconnect confirmation, remote-display-state
