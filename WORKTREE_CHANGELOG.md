@@ -1,6 +1,13 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / opt-in successful video commit intervals
+Plan003456e/source940fdc5. Host GCC ASan/UBSan assertions pass. Two ARM
+make-B-j4/strip outputs byte-identical a683cf70a95ba2759b5c9d2b1e0dc016.
+Planned runtime: CEDAR_FRAME_GAP_STATS=1 with existing rotate90/pool9/default
+and raw800x48060 FIFO. Original player0bd4666c retained, candidate distinct
+/root/aic_miracast/candidates/player_frame_gap_20261001/player-frame-gap.
+Disconnect through ADB only, wait old process terminal before starting;
+same loss-IDR sink273b1d0a and same WPA/GO/BT route. No driver reset.
 Base50426d5, original tree, branch candidate/frame-gap-stats-20261001.
 Existing complete rollback archive player_decoder_idle_20261001/candidate
 contains source.bundle/source-objects.tar.gz/player-idle. Baseline rebuilt
