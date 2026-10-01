@@ -1,5 +1,21 @@
 # Worktree Change Log
 
+## 2026-10-01 planned: decoder idle backoff from original player
+Base8f8a7b0/e1d6fed2, branchcandidate/decoder-idle-wait-20261001; prior AUD
+candidate preserved but not stacked. Complete source/object/bundle and exact
+binary copied to player_decoder_idle_20261001/before, no new worktree.
+Dynamic decoder thread24795 had9228 voluntary switches in5.25s (~1758/s),
+112CPUticks (~21%). Current per-loop50us sleep wakes even with no input.
+Change decoder only: remove unconditional50us; if Cedar says NO_BITSTREAM5
+or NO_FRAME_BUFFER4, sleep2000us then recheck stop/state/free pictures.
+Keep successful decode timing/PTS/fps/native90/CMA/protocol/audio unchanged.
+Add low-frequency result counts every4096calls and main exit state/signal
+diagnostics for prior unexplained reader-close/EPIPE. No behavioral recovery
+or silent resolution/driver changes. Record compile results then real same
+phone video metrics, cancellation/returncodes. Kernel preflight exact5.7.1.
+Automatic ADB cast-only disconnect/reconnect, no phone media/rotation/loop
+operations. Rollback original e1d6fed2; threecold0/3, no stable push.
+
 ## 2026-10-01 / planned / ordered display-worker teardown
 Original player tree /home/wnk/f1c200s_display_480x800_candidate_20260914,
 base7263725/tagplayer-before-lifecycle-20261001, branchcandidate/player-lifecycle-20261001.
