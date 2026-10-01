@@ -91,6 +91,19 @@ are unverified. Three complete cold boot cycles remain 0/3, no stable push.
 Helper final diagnostic failed because ip is absent after launch; processes
 and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
+
+## 2026-10-01 planned: observe live FIFO/receive stalls
+Base3aff659/sourcea282376/db9732dd, exact source bundle and binary retained.
+Branch candidate/rtp-stall-observe-20261001 in original tree, no worktree.
+User reports frequent stalls; batching alone insufficient, not certified.
+Only sink timing/counters: monotonic FIFO write duration and receive gaps,
+socket-local SO_RXQ_OVFL ancillary counter via recvmsg, periodic summaries.
+No new buffering, thread, socket capacity, scheduling priority, video codec,
+player, driver or CMA change. Stats every4096RTP packets, not per-packet logs.
+Test old byte-output/EPIPE sanitizer tests, mock800 RTSP, deterministic ARM.
+Rollback sink-batch/db9732dd and current watcher remain untouched. Live
+reconnect needed to deploy diagnostics; optimize only from measured evidence.
+Shared dependencies FIFO/player/audio/network scheduling, threecold0/3.
 Deployment verified: sinkdb9732dd9062657d84465281a9186d99,
 watcher0c84cef40e4190957f423f4add99c982. User disconnected; old sink16874
 exited0 and player released VE. New player17760/watch17761 waiting DHCP
