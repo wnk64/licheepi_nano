@@ -35,3 +35,20 @@ Record pool peak/fallback and ordinary RAM after phone starts; 9MiB is a
 candidate budget, not a guarantee. Restore immutable640 snapshot on failure.
 Tests: byte diff, deterministic ARM builds, mock M1-M7 negotiation, realphone.
 Decision: pending, no stable certification or GitHub push.
+
+Sourceaaef280, ARM sinkb96fa52854a2255555ab40c9c771496d, watcher27055c3b.
+Two builds identical; native mock M1-M7 for640 and800 profiles pass, no video
+acceptance inferred from mocks. Isolated board candidate deployed, oldceeeb995
+and640 snapshot untouched. Complete640 checkpoint248MiB SHA25665fb6546fbd445447aa5a3beafc6975a3b78296bfc6d34c5237314da83b901f1
+verified in Windows/Ubuntu before switching. 640 sink exits0, poolpeak6799360,
+fallback0/live0; no board reboot. DHCP7001 blocksrecv onTERM, scoped KILL after
+checking executable; no DHCP code/config changes. New GO5745MHz DIRECT-Ij;
+player12679/sink13259, pool9MiB/raw80048060/rotate90/native480x800.
+User confirms success. Real phone M4 HHmask00000002/CEAmask0; decoded frame
+480x800 native/no scaling. Same#250/bootea1b461e-c82b-4fec-9d32-5256689ece80.
+Streaming snapshot MemAvailable20008/MemFree14788/CmaFree9968KiB;
+ordinary free4820KiB, Slab12592/SUnreclaim11312KiB; compared64022292KiB
+available, decrease2284KiB. Pool reserved9MiB, peak/live usage not measured
+without stopping; no claim of peak margin from CmaFree. Keep stream active.
+Decision: user-confirmed initial800 success; duration/reconnect/three cold
+cycles still pending0/3. No audio pipeline change, no GitHub stable push.
