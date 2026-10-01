@@ -1,6 +1,14 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / opt-in monotonic FIFO coalescing
+Plan6d8a1fb/source df407c6, host off/on20lifecycle/full/EPIPE sanitizer tests
+and 3ms-tail/50stop tests pass; mock800 and IDR pass with batch+coalesce.
+Two existing Makefile ARM builds MD5 42d0cfa89120992a427abfde403770c9.
+Additional test planned: wait for writer accounting after read (avoid test
+race), then verify exactly4KiB queued does not enter timed coalescing wait.
+No production binary change for this test addition. Deploy separate target
+miracast_fifo_coalesce_20261001/sink-coalesce, retain c4cfdcdd rollback;
+same a683cf70 player/fullBluetooth/native90/pool9, batch and loss-IDR enabled.
 Base681cddb/c4cfdcdd, tag sink-before-fifo-coalesce-20261001, original tree
 branch candidate/fifo-coalesce-20261001. Existing complete dependency/source
 archive plus tracked receive-batch delta and retained c4cfdcdd rollback; exact
