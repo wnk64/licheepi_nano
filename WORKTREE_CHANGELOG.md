@@ -1,6 +1,16 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / reproduce current cold-start runtime
+Plan9de1e3e/sourcefed75fe, hosttimestampse2af014. Launcher MD5c312e492
+SSH verified, shell syntax passes, artifact-only preflight passes. Cold mode
+correctly refuses active runtime; /tmp confirmedtmpfs. Hot mode passes,
+player11613/watch11614/sink11663, PCM73MB/advancing video/max169792us;
+two CPU91.31/86.04%/drops0/0 samples, same original GO/services/phone media.
+Saved prior stream2083.766915s(~34.7min)/90095commits,2gaps>250ms,
+max251974us/errors0; better but not absolutely stall-free or optical proof.
+Plan physical cycle1 only after graceful disconnect/terminal processes/sync,
+provided hub helperCOM3 off/on5s with ack timestamps/COM4 boot capture.
+Record exact new boot and all dependencies in COLD_START_TESTS_20261001.md.
 Base25802ea, tag sink-before-cold-start-workflow-20261001, branch
 candidate/cold-start-workflow-20261001 in original tree, no core changes.
 Files runtime/cold-start-20261001/start-cast.sh plus exact active wpa.conf/
