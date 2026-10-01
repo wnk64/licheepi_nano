@@ -1,5 +1,12 @@
 # Worktree Change Log
 
+## 2026-10-02 planned / archive current successful runtime sources
+User requests full-source GitHub snapshot; owner changedWnjbk->wnk64.
+Add runtime/snapshot-20261002 documentation/archive tool/launcher recipe and
+actual allowlisted runtime artifacts. No board deployment/new worktree.
+Publish complete kernel/AIC53bec9e/player/sink independent refs to current
+wnk64/licheepi_nano, preserve old stable tags; pending threecold acceptance.
+
 ## 2026-10-02 pending / full AV ON-OFF-ON results
 Sourcea61ed97/build17357af, ff58d9fc/a683cf70 sameboot31071e77/CMA20.
 ON1 1543.05s/OFF2354.73s/ON2 90.13s zero gaps>250ms/commiterrors.
