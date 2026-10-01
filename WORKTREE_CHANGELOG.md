@@ -1,5 +1,24 @@
 # Worktree Change Log
 
+## 2026-10-01 planned / reproduce current cold-start runtime
+Base25802ea, tag sink-before-cold-start-workflow-20261001, branch
+candidate/cold-start-workflow-20261001 in original tree, no core changes.
+Files runtime/cold-start-20261001/start-cast.sh plus exact active wpa.conf/
+pbc-watch.sh/rtsp-watch.sh templates and host hub_cycle.py. Current WFD
+subelements0/1/6/11 read from live WPA, GO5745, installed load scriptdec5f234
+and memory helper0dcd3f87 preserved, no archived driver replacement.
+Artifact preflight hashes sink42d0cfa8/playera683cf70/loaderbb2d68ed/fdrv334699cc,
+firmware01acfbeb/protocol tools and templates; release5.7.1/native480x800/BS.
+Cold refuses existing runtime; session waits old processes terminal; same
+FIFO/raw800x48060/90/pool9/3options, route must Bluetooth pairedWt-070.
+Connect via BlueZ D-Bus because this BlueZ5.48 bluetoothctl ignores one-shot
+command args. No ordinary STA config printed/transferred, no boot integration.
+Host delegates debug-hub skill power helper with currentCOM3, capturesCOM4,
+verified OFF/ON acknowledgements and5s off; WMI denied, registry confirmed3/4.
+Test shell syntax/artifact-only preflight/refuse active-cold/hot reconnect
+before physical cold3cycles; protected BS SSH/BT/AIC/GO/native display/RAM.
+Pending acceptance0/3; no stable push. Save only small diagnostic text logs.
+
 ## 2026-10-01 planned / opt-in monotonic FIFO coalescing
 Later same-session validation: /proc8790/exe MD542d0cfa8 and /proc8743/exe
 a683cf70 match selected artifacts. 25519successful commits, lifetime max
