@@ -1,3 +1,19 @@
+## 2026-10-01 / planned / single-height fbdev allocation
+User authorizes display buffer only; Slab investigation read-only.
+Base44d8a9f/#249 complete-source zImage64739afc046149ef029e5e4819e03e92.
+Original tree retained, tagkernel-before-fbdev100-20261001, archive
+/home/wnk/F1C200S_archives/fbdev_single_20261001/before.
+Only .config DRM_FBDEV_OVERALLOC200->100; expected fb0480x1600->480x800,
+allocation3072000->1536000 bytes, saving375pages/~1.46MiB CMA.
+Protected: DRM video layers/player/Cedar rotation, Codec buffers, legacyPTY,
+NFS, MUSB/AIC/BS/H5, DTB and CMA24MiB all unchanged. No newworktree.
+Incremental zImage/modules in tmux, original Linaro7.2.1 ARCHarm LOCALVERSION=,
+release5.7.1; no clean/mrproper. Preserve board#249 before deploy viaSSH/FAT.
+Tests: buffer geometry/CMA allocation, console/DRM, BS SSH/HCI/AIC, actual
+native rotated video/phone casting. Full three cold-cycle acceptance pending.
+Rollback:/root/aic_miracast/candidates/fbdev_single_20261001/rollback/zImage.before.
+Slab observation must not change allocator/debug options or unload drivers.
+
 ## 2026-10-01 / planned deployment / eliminate test devices at boot
 User authorized kernel removal instead of deferred runtime cleanup.
 Ports verified: COM3 hub exact ON acknowledgement; COM4 Buildroot console.
