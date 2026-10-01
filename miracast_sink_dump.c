@@ -474,7 +474,7 @@ int main(int argc, char **argv)
     snprintf(m3_body, sizeof(m3_body),
         "wfd_client_rtp_ports: RTP/AVP/UDP;unicast 1028 0 mode=play\r\n"
         "wfd_audio_codecs: LPCM 00000002 00\r\n"
-        "wfd_video_formats: 00 00 02 04 00000001 00000000 00000000 00 0000 0000 00 none none\r\n"
+        "wfd_video_formats: 0a 00 02 04 00000001 00000000 00000002 00 0000 0000 00 none none\r\n"
         "wfd_3d_video_formats: none\r\n"
         "wfd_coupled_sink: none\r\n"
         "wfd_connector_type: 05\r\n"

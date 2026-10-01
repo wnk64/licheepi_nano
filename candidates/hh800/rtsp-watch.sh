@@ -1,0 +1,35 @@
+#!/bin/sh
+# Runtime-only Miracast helper.  Watch only DHCP requests appended after start.
+set -eu
+
+R=/tmp/manual_miracast_20260920
+LOG="$R/dhcp.log"
+FIFO=/tmp/aic_h264_live.fifo
+SINK=/root/aic_miracast/candidates/miracast_hh800_20261001/sink-hh800
+
+test -r "$LOG"
+test -p "$FIFO"
+test -x "$SINK"
+
+# Existing entries describe old phone attempts and must not launch a stale sink.
+seen=$(wc -l < "$LOG")
+printf 'watch start: existing DHCP lines=%s\n' "$seen" > "$R/rtsp-watch.log"
+
+while :; do
+    now=$(wc -l < "$LOG")
+    if [ "$now" -gt "$seen" ] && sed -n "$((seen + 1)),$now p" "$LOG" | grep -q '^REQUEST '; then
+        ip=$(sed -n "$((seen + 1)),$now p" "$LOG" | sed -n 's/^REQUEST .*ip=\([0-9.]*\)$/\1/p' | tail -n 1)
+        test -n "$ip"
+        printf 'DHCP REQUEST: %s\n' "$ip" >> "$R/rtsp-watch.log"
+        "$SINK" "$ip" "$FIFO" > "$R/sink.log" 2>&1 &
+        pid=$!
+        printf '%s\n' "$pid" > "$R/sink.pid"
+        printf 'sink started: pid=%s ip=%s\n' "$pid" "$ip" >> "$R/rtsp-watch.log"
+        rc=0
+        wait "$pid" || rc=$?
+        printf 'sink exited: rc=%s\n' "$rc" >> "$R/rtsp-watch.log"
+        exit "$rc"
+    fi
+    seen=$now
+    sleep 1
+done

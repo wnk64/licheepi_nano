@@ -20,3 +20,18 @@ Archive full Git bundle, original source/build recipe/exact binary separately.
 Board snapshot MD59a797dc49737a464135f25f07122bf83 in Windows and VM verified.
 No video capture or private management Wi-Fi credentials archived.
 No live process interrupted yet; no new worktree or GitHub push.
+
+## 2026-10-01 / planned / prefer handheld800x480p60
+Base05324af/tagmiracast-sink-640-stage-20261001, exact binaryceeeb995.
+Original worktree branchcandidate/miracast-hh800-20261001, no new worktree.
+Only M3 wfd_video_formats native00->0a (HH1), HH bitmap0->2 (800x480p60).
+Keep mandatory CEA0 fallback and all codec/RTSP/RTP/PES fields unchanged.
+Mode mapping verified in existing miraclecast src/ctl/wfd.c HH index1.
+Phone M4 and decoded picture must actually select800x480, never count640
+fallback as800 or scale it. Isolated runtime watcher only changes SINK path.
+Use existing e1d6fed2 player raw80048060/rotate90/native480x800, pool9MiB
+to accommodate larger frames; CMA24MiB/kernel#250/DTB/AIC/BS/BT unchanged.
+Record pool peak/fallback and ordinary RAM after phone starts; 9MiB is a
+candidate budget, not a guarantee. Restore immutable640 snapshot on failure.
+Tests: byte diff, deterministic ARM builds, mock M1-M7 negotiation, realphone.
+Decision: pending, no stable certification or GitHub push.
