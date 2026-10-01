@@ -1,5 +1,22 @@
 # Worktree Change Log
 
+## 2026-10-01 planned / opt-in monotonic FIFO coalescing
+Base681cddb/c4cfdcdd, tag sink-before-fifo-coalesce-20261001, original tree
+branch candidate/fifo-coalesce-20261001. Existing complete dependency/source
+archive plus tracked receive-batch delta and retained c4cfdcdd rollback; exact
+make -f Makefile.sink -B baseline reproduces c4cfdcddbedbb1851e65fbe0b2cb3e52.
+Files wfd_video.c/tests/test_video_coalesce.c only, plus these records.
+WFD_VIDEO_COALESCE=1 collects up to4096bytes with maximum3ms intentional
+CLOCK_MONOTONIC condition wait, no deadline restart on spurious signals.
+Signal on empty->data/threshold crossing/error/stop, not every tiny append.
+Add success-write/signal/coalesce-block counters, no per-write logging.
+Same128KiB queue/4KiB scratch/64KiB worker, no extra video buffers or files.
+Preserve bytes/order/full-as-error/stop/EPIPE, source/audio/IDR/UDP batch,
+native90degree player/pool9/BT route, BS/AIC/kernel/drivers/phone media.
+Tests tail flush/exact bytes/50stop cycles plus existing20lifecycle/full/EPIPE
+tests off/on ASan/UBSan, protocol/receive tests, two identical ARM builds.
+Reconnection through ADB only, old-process terminal gate. Pending cold0/3.
+
 ## 2026-10-01 planned / bounded nonblocking UDP batch reception
 Final evidence RECVMMSG_RESULTS_20261001.md. Run1 170.316938s/7730commits,
 45.39Hz/0gaps>250ms/max200550us; run2 210.46676s/10136commits,48.16Hz/
