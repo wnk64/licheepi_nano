@@ -1,6 +1,14 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / one video handoff per received UDP batch
+Planned7bea12c/sourcea61ed97. New exact byte/capacity/tail/invalid/mixedPID/
+failure/control-stop/default tests and old byte/EPIPE ASan/UBSan pass. Mock800
+and IDR explicitly ASYNC/RX_BATCH/COALESCE/VIDEO_RX_BATCH enabled pass.
+Two ARM builds ff58d9fc8a47606e926575b65c6450ab, SSH versioned transfer verified.
+Runtime plan: old42d0cfa8 retained, disconnect/wait terminal processes, same
+a683cf70 player and20M boot31071e77, add only VIDEO_RX_BATCH=1 and sink path.
+New emit counts represent batch handoffs, not per-RTP writes; report pending
+and control-stop/error discard separately. No native frame/audio changes.
 Base4283000/core42d0cfa8, original tree branchcandidate/rx-video-handoff-20261001;
 exact baseline make -f Makefile.sink -B reproduces42d0cfa8. Rollback untouched.
 Files miracast_sink_dump.c/tests/test_rx_video_handoff.c, no worker/audio changes.
