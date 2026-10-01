@@ -69,3 +69,24 @@ available, decrease2284KiB. Pool reserved9MiB, peak/live usage not measured
 without stopping; no claim of peak margin from CmaFree. Keep stream active.
 Decision: user-confirmed initial800 success; duration/reconnect/three cold
 cycles still pending0/3. No audio pipeline change, no GitHub stable push.
+# 2026-10-01 audio candidate deployment (pending)
+Source commit: 1e92840, branch candidate/wfd-lpcm-audio-20261001.
+Host ASan/UBSan/LPCM fragmentation/fuzz/ALSA-null lifecycle tests passed;
+mock M1-M7 HH800 profile passed. Two ARM builds byte-identical.
+Board sink MD5: 2abf061085a4f828af9b6c1c6124bb1a.
+Watcher MD5: 42f8ae3cba198044164ba043f38c24cf.
+Deployment: /root/aic_miracast/candidates/miracast_audio_20261001/.
+Pure-video watcher MD5: 27055c3b9291a15f35d13bc4793ce577, preserved at
+/root/aic_miracast/candidates/miracast_hh800_20261001/rtsp-watch.before-audio.sh.
+Original video sink b96fa52854a2255555ab40c9c771496d remains untouched.
+Rollback: after graceful candidate shutdown, restore that watcher to
+/tmp/manual_miracast_20260920/rtsp-watch.sh and restart player/watch for
+a fresh phone connection. Do not copy a watcher over a live watcher process.
+Current player16712/watch16713; existing WPA6960/DHCP12705/PBC7006 retained.
+Player e1d6fed2, pool9MiB/raw80048060/rotate90/native480800/FIFO unchanged.
+Default route is Bluetooth Wt-070 12:11:71:41:9C:4A.
+No kernel/driver/DTB/CMA-total/audio-route changes; no reboot/active-stream kill.
+Real phone reconnect, LPCM headers, audible output, sync, RAM and stability
+are unverified. Three complete cold boot cycles remain 0/3, no stable push.
+Helper final diagnostic failed because ip is absent after launch; processes
+and artifact hashes independently verified. No launch failure inferred.
