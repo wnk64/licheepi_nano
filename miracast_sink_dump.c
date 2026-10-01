@@ -42,6 +42,25 @@ static unsigned long g_video_ts_packets;
 static uint8_t g_video_batch[RTP_MAX];
 static size_t g_video_batch_bytes;
 static unsigned long g_video_writes;
+static unsigned long long g_write_us, g_write_max_us, g_receive_gap_us;
+static unsigned long g_write_over_5ms, g_write_over_20ms;
+static uint32_t g_socket_drops;
+static unsigned long long monotonic_us(void)
+{
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
+        return 0;
+    return (unsigned long long)ts.tv_sec * 1000000u + ts.tv_nsec / 1000u;
+}
+
+static void report_delivery(void)
+{
+    fprintf(stderr, "delivery: writes=%lu write_us=%llu max_write_us=%llu over5ms=%lu over20ms=%lu max_recv_gap_us=%llu socket_drops=%u\n",
+            g_video_writes, g_write_us, g_write_max_us, g_write_over_5ms,
+            g_write_over_20ms, g_receive_gap_us, g_socket_drops);
+    g_write_us = g_write_max_us = g_receive_gap_us = 0;
+    g_write_over_5ms = g_write_over_20ms = 0;
+}
 
 struct rtsp_reader {
     char data[RTSP_BUF_MAX];
@@ -400,7 +419,14 @@ static void process_rtp_packet(const uint8_t *pkt, int len)
         process_ts_packet(p + i * TS_SIZE);
     /* Flush per RTP packet, never wait for another packet to fill a buffer. */
     if (g_video_batch_bytes && !g_stop) {
+        unsigned long long started = monotonic_us();
         size_t wrote = fwrite(g_video_batch, 1, g_video_batch_bytes, stdout);
+        unsigned long long elapsed = monotonic_us() - started;
+        g_write_us += elapsed;
+        if (elapsed > g_write_max_us)
+            g_write_max_us = elapsed;
+        g_write_over_5ms += elapsed > 5000;
+        g_write_over_20ms += elapsed > 20000;
         g_video_writes++;
         g_h264_bytes += (unsigned long long)wrote;
         if (wrote != g_video_batch_bytes)
@@ -417,6 +443,8 @@ static int bind_rtp_socket(const char *bind_ip)
 
     int one = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
+    if (setsockopt(fd, SOL_SOCKET, SO_RXQ_OVFL, &one, sizeof(one)) < 0)
+        fprintf(stderr, "SO_RXQ_OVFL unavailable: %s\n", strerror(errno));
 
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
@@ -550,6 +578,7 @@ int main(int argc, char **argv)
     unsigned long long rtp_bytes = 0;
     int local_cseq = 102;
     int initial_idr_sent = 0;
+    unsigned long long previous_receive = 0;
     while (!g_stop) {
         while (pop_rtsp_message(&rr, buf, sizeof(buf), "<---RTSP---")) {
             if (strstr(buf, "wfd_trigger_method: TEARDOWN")) {
@@ -614,13 +643,33 @@ int main(int argc, char **argv)
         }
 
         if (FD_ISSET(rtp, &rfds)) {
-            ssize_t n = recv(rtp, pkt, sizeof(pkt), 0);
+            union { struct cmsghdr align; unsigned char bytes[CMSG_SPACE(sizeof(uint32_t))]; } control;
+            struct iovec iov = { .iov_base = pkt, .iov_len = sizeof(pkt) };
+            struct msghdr msg;
+            memset(&msg, 0, sizeof(msg));
+            msg.msg_iov = &iov;
+            msg.msg_iovlen = 1;
+            msg.msg_control = control.bytes;
+            msg.msg_controllen = sizeof(control.bytes);
+            ssize_t n = recvmsg(rtp, &msg, 0);
             if (n > 0) {
+                unsigned long long received = monotonic_us();
+                if (previous_receive && received - previous_receive > g_receive_gap_us)
+                    g_receive_gap_us = received - previous_receive;
+                previous_receive = received;
+                for (struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg); cmsg;
+                     cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+                    if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SO_RXQ_OVFL &&
+                        cmsg->cmsg_len >= CMSG_LEN(sizeof(g_socket_drops)))
+                        memcpy(&g_socket_drops, CMSG_DATA(cmsg), sizeof(g_socket_drops));
+                }
                 process_rtp_packet(pkt, (int)n);
                 last_packet = time(NULL);
                 rtp_packets++;
-                if ((rtp_packets & 0xfff) == 0)
+                if ((rtp_packets & 0xfff) == 0) {
                     wfd_audio_report();
+                    report_delivery();
+                }
                 rtp_bytes += (unsigned long long)n;
                 if (!initial_idr_sent && rtp_packets >= 12) {
                     fprintf(stderr, "request initial IDR after %lu RTP packets\n",
@@ -633,6 +682,7 @@ int main(int argc, char **argv)
     }
 
     fflush(stdout);
+    report_delivery();
     fprintf(stderr,
             "final stats: rtp_packets=%lu rtp_bytes=%llu ts_packets=%lu video_ts_packets=%lu h264_bytes=%llu video_writes=%lu\n",
             rtp_packets, rtp_bytes, g_ts_packets, g_video_ts_packets,
