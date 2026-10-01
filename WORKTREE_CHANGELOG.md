@@ -91,6 +91,14 @@ are unverified. Three complete cold boot cycles remain 0/3, no stable push.
 Helper final diagnostic failed because ip is absent after launch; processes
 and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
+Source commit a282376, plan102e26d. ASan/UBSan exact-output/EPIPE tests pass,
+mixed video/nonvideo TS six writes become one; short final RTP flush verified.
+Mock800 M1-M7 passed; twice-built ARM MD5db9732dd9062657d84465281a9186d99.
+Candidate staged to board versioned directory with matching MD5. User has
+disconnected; switch uses same DHCP/PBC/protocol/player, only sink path.
+Rollback old audio sink2abf0610 and rtsp-watch.before-batch.sh preserved at
+/root/aic_miracast/candidates/miracast_rtp_batch_20261001/.
+Runtime performance unmeasured; do not claim CPU or drop reduction from mocks.
 Base f6bd85a/source1e92840, sink2abf0610, exact original source/build retained.
 Original tree branch candidate/rtp-fifo-batch-20261001, tag
 sink-audio-before-rtp-batch-20261001; archive miracast_rtp_batch_20261001/before.
