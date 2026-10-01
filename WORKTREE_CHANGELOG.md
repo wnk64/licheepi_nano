@@ -1,5 +1,22 @@
 # Worktree Change Log
 
+## 2026-10-01 planned / bounded nonblocking UDP batch reception
+Original tree branch candidate/recvmmsg-20261001 from21afbcd, immutable tag
+sink-before-recvmmsg-20261001. Existing full source/dependency/binary archive
+miracast_loss_idr_20261001/candidate; exact baseline reproduced with
+make -f Makefile.sink TARGET=/tmp/f1-rx-batch-baseline -B:273b1d0a.
+Files miracast_sink_dump.c/Makefile.sink/wfd_rx.h/tests/test_wfd_rx.c.
+WFD_RTP_BATCH=1 uses recvmmsg maximum16 already-available datagrams, no
+batch-fill wait. Default recvmsg1; ENOSYS fallback1. Reset per-slot metadata
+and retain per-datagram SO_RXQ_OVFL. Reject truncated invalid datagrams.
+~34KiB bounded receive storage, no threads/queue growth/disk video capture.
+Hypothesis: reduce select/recvmsg syscalls/CPU/localdrops/output stalls.
+Protected: packet order, payload bytes, RTP/PES/audio/IDR/RTSP, FIFO, same
+frame-gap player/native90degree/pool9, BT route, BS SSH, AIC/kernel/drivers.
+Tests actual UDP sockets/order/empty/zero/truncation/reuse/fallback sanitizer,
+existing byte-equivalence and mock RTSP/IDR, two identical ARM builds, liveAV.
+Rollback existing273b1d0a; no stable push, threecold0/3 pending.
+
 ## 2026-10-01 / planned / bounded WFD LPCM to ALSA default
 Base67ad37c/b96fa528, tag sink-hh800-before-audio-20261001, complete source
 and binary archived under miracast_audio_20261001/before; original tree kept.
