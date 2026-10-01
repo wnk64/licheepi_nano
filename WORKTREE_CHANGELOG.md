@@ -13,6 +13,26 @@ Tests: buffer geometry/CMA allocation, console/DRM, BS SSH/HCI/AIC, actual
 native rotated video/phone casting. Full three cold-cycle acceptance pending.
 Rollback:/root/aic_miracast/candidates/fbdev_single_20261001/rollback/zImage.before.
 Slab observation must not change allocator/debug options or unload drivers.
+Source54102f9; normalized config diff exactly one value, MD53e4a7d093691315cb1df4fe21123a4ea.
+Build tmuxf1-fbdev100-1001 numericrc0/release5.7.1; zImagebffc71e8bcd28ef7f1f18616af72ab38,
+vmlinuxeb0d95a067f2cb559cffc3ee56b23b0b, System.map998a9129d20d2aa81caa66af838359ea.
+Six protected modules byte-identical/vermagic5.7.1; complete candidate archived.
+FAT deploy verified, unchanged DTB50499cb; #249 rollback64739afc retained.
+Cold#250 boot953e1744-38e0-454c-933b-7eb8c565d2cf: fb0480x800,
+CMA fb allocation750->375pages, saving1500KiB (not1536KiB).
+Native MP4 800x480 test using unchanged11386ab rotated480x800/no scaling;
+on SIGINT teardown exited139 with DRM badfd. Rolled back#249 and reproduced
+same SIGINT exit139/badfd using identical input/binary/command; no proof of
+new fbdev regression, old-player teardown issue left untouched by user scope.
+Re-enabled#250, coldbootea1b461e-c82b-4fec-9d32-5256689ece80; fb0480x800,
+BS SSH/HCI initialized, AIC8d83/wlan1 registered. No player/protocol left running.
+Boot MemAvailable38600KiB; AIC-loaded35476KiB, CMA24MiB/free21788KiB.
+Slab AIC before6776/reclaim1356/unreclaim5420KiB; after9260/1288/7972KiB.
+Slab increment2552KiB unreclaim relates to AIC plus USB/wireless dependencies,
+not proven exclusive ownership. Kernfs1668KiB is a subset, do not add twice.
+Prior sysfs scans grew reclaimable inode/dentry; no allocator tuning performed.
+Decision: deployed candidate, allocation result verified; visual/phone casting,
+safe player lifecycle and full cold-cycle acceptance pending0/3, no stable push.
 
 ## 2026-10-01 / planned deployment / eliminate test devices at boot
 User authorized kernel removal instead of deferred runtime cleanup.
