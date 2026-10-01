@@ -39,6 +39,9 @@ static volatile sig_atomic_t g_stop;
 static unsigned long long g_h264_bytes;
 static unsigned long g_ts_packets;
 static unsigned long g_video_ts_packets;
+static uint8_t g_video_batch[RTP_MAX];
+static size_t g_video_batch_bytes;
+static unsigned long g_video_writes;
 
 struct rtsp_reader {
     char data[RTSP_BUF_MAX];
@@ -340,10 +343,12 @@ static void write_h264_from_ts_payload(const uint8_t *payload, int payload_len,
 
     if (payload_len > off) {
         size_t want = (size_t)(payload_len - off);
-        size_t wrote = fwrite(payload + off, 1, want, stdout);
-        g_h264_bytes += (unsigned long long)wrote;
-        if (wrote != want)
+        if (want > sizeof(g_video_batch) - g_video_batch_bytes) {
             g_stop = 1;
+            return;
+        }
+        memcpy(g_video_batch + g_video_batch_bytes, payload + off, want);
+        g_video_batch_bytes += want;
     }
 }
 
@@ -378,6 +383,9 @@ static void process_ts_packet(const uint8_t *ts)
 
 static void process_rtp_packet(const uint8_t *pkt, int len)
 {
+    g_video_batch_bytes = 0;
+    if (len > RTP_MAX)
+        return;
     int off = rtp_payload_offset(pkt, len);
     if (off < 0)
         return;
@@ -390,6 +398,15 @@ static void process_rtp_packet(const uint8_t *pkt, int len)
     int ts_count = payload_len / TS_SIZE;
     for (int i = 0; i < ts_count; i++)
         process_ts_packet(p + i * TS_SIZE);
+    /* Flush per RTP packet, never wait for another packet to fill a buffer. */
+    if (g_video_batch_bytes && !g_stop) {
+        size_t wrote = fwrite(g_video_batch, 1, g_video_batch_bytes, stdout);
+        g_video_writes++;
+        g_h264_bytes += (unsigned long long)wrote;
+        if (wrote != g_video_batch_bytes)
+            g_stop = 1;
+    }
+    g_video_batch_bytes = 0;
 }
 
 static int bind_rtp_socket(const char *bind_ip)
@@ -617,9 +634,9 @@ int main(int argc, char **argv)
 
     fflush(stdout);
     fprintf(stderr,
-            "final stats: rtp_packets=%lu rtp_bytes=%llu ts_packets=%lu video_ts_packets=%lu h264_bytes=%llu\n",
+            "final stats: rtp_packets=%lu rtp_bytes=%llu ts_packets=%lu video_ts_packets=%lu h264_bytes=%llu video_writes=%lu\n",
             rtp_packets, rtp_bytes, g_ts_packets, g_video_ts_packets,
-            g_h264_bytes);
+            g_h264_bytes, g_video_writes);
     close(rtp);
     close(rtsp);
     return 0;
