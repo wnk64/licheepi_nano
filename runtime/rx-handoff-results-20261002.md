@@ -31,3 +31,10 @@ Rollback:option0 or retained42d0cfa8 sink; CMA original boot.scr at
 /root/aic_miracast/candidates/cma20_20261001/rollback/boot.scr.before.
 No kernel/DTB/module/driver/phone-media changes or stable GitHub promotion.
 Three-cold acceptance and optical verification still pending.
+
+Later live observation:17890commits/lifetime_max183898us/errors0, no
+gaps>250ms seen in latest windows. PCMwritten71513344/dropped144896/
+underruns2, RTP208897/missing0/socket_missing0, FIFO full/failed0.
+This supersedes early90s maximum only for ongoing session, not saved sample.
+Small jitter and audio underrun still need investigation; do not call fixed.
+Results commits935c66e/0f64d70. Disposable launch/transfer wrappers removed.
