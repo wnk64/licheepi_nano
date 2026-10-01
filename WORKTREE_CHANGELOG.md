@@ -93,6 +93,15 @@ and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
 ## 2026-10-01 planned: bounded asynchronous FIFO delivery
+Deployment: user disconnected, old sink20548 exited0. New player21525/
+watch21526 waiting new DHCP after11lines; sink99a700f8e1592a68d06d608ff983dfdd
+and watcher2ad42f12091f64f548df07dc36fe9e8f verified overSSH. Build/docs3f26038.
+Candidate /root/aic_miracast/candidates/miracast_async_fifo_20261001/.
+Rollback old sink-burstf8a1058c untouched; watcher rtsp-watch.before-async.sh
+retains WFD_SINK override, so restore with WFD_SINK pointing to old sink-burst
+(otherwise defaults to observer). Save pretest logs sink-burst.log/player-burst.log.
+Runtime/tmp only, no reboot or driver/boot-service changes. Live queue/CPU/
+RTP-drop/A/V performance still pending. Temporary helpers cleaned after use.
 Implemented1de102b, exit-status fix083544c (explicit failed output returns1,
 not normal0). Host20lifecycle/exact-order/wrap/full/EPIPE/stop tests pass
 ASan/UBSan/leaks; existing RTP batch sanitizer and mock800 pass. Final ARM
