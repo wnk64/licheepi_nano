@@ -24,6 +24,23 @@ no baseline target overwritten, stage1 not accepted for raw live use.
 Follow-up same shutdown hypothesis: raw reader O_NONBLOCK plus100ms poll,
 preserve regular-file EOF and FIFO writer-close EOF; check stop/error while
 waiting for decoder stream space. No data format/frame parsing change.
+Final sourcea57e979, ARM ELF e1d6fed2782154bcf934fee67a298813, two builds
+byte-identical; host50 cases ASan/UBSan/leak detection pass, old negative134.
+Deployed only /root/aic_miracast/candidates/player_lifecycle_20261001/player-lifecycle;
+original1259e0f3 poolplayer and11386ab dtsview unchanged, protocol entry unchanged.
+Board#250/e a1b461e boot unchanged (full ID ea1b461e-c82b-4fec-9d32-5256689ece80).
+Eight tests pass rc0/no badfd/no timeout: MP4 INT/TERM repeated2x (800x480,
+rotate90/native480x800/defaultaudio); raw FIFO INT/TERM with no writer and
+with connected idle writer (640x480/800x480, pool7MiB). No actual streamed
+raw frames in FIFO tests, no full Miracast/visual acceptance claim. MP4 parser
+is configured to loop, so natural MP4 EOF exit is not claimed or changed.
+Raw cases report peak1MiB/allocations1/fallback0/live0; post-tests ION total0,
+orphaned0. Debugfs temporarily mounted by inspection, then unmounted.
+Available RAM35260->35196KiB over8 cases, later35212KiB; no monotonic-leak
+proof claimed from meminfo alone. All test processes/FIFO/logs removed.
+Source changes remain only two C files plus mock test/records; same kernel,
+DTB/CMA24MiB/fb0480x800/AIC/BS/BT. Decision: verified shutdown candidate;
+phone-streaming, visual and three cold/regression cycles pending0/3, no push.
 
 ## 2026-09-30 / planned / opt-in private CMA arena
 Historical provenance resolved: reconstruct main.o using drm_warpper.h from
