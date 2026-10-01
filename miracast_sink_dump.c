@@ -445,6 +445,13 @@ static int bind_rtp_socket(const char *bind_ip)
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
     if (setsockopt(fd, SOL_SOCKET, SO_RXQ_OVFL, &one, sizeof(one)) < 0)
         fprintf(stderr, "SO_RXQ_OVFL unavailable: %s\n", strerror(errno));
+    /* Bound burst tolerance to the board's rmem_max; never change sysctls. */
+    int receive_bytes = 180224;
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &receive_bytes, sizeof(receive_bytes)) < 0)
+        fprintf(stderr, "SO_RCVBUF request failed: %s\n", strerror(errno));
+    socklen_t receive_size = sizeof(receive_bytes);
+    if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &receive_bytes, &receive_size) == 0)
+        fprintf(stderr, "RTP receive capacity: requested=180224 effective=%d socket-accounting bytes\n", receive_bytes);
 
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
