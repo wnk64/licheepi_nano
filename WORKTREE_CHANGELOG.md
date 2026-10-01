@@ -99,6 +99,23 @@ write totals sum12.97s. Cannot establish multi-second FIFO blockage from this.
 Pool peak8437760/cap9437184/fallback0/live0, clean lifecycle, no OOM.
 
 ## 2026-10-01 planned: bounded per-socket receive burst capacity
+Source548f939, plan178de23, watcher89d3c9e; ASan/UBSan byte/EPIPE and
+mock800 pass, two ARM builds equal f8a1058ccde51d0f44c8ac2f2e718cc9.
+Deployed versioned sink-burst, remote hash verified, watcher64148622ebaaede823b023a7dc9e7ec0.
+Player20413/watch20414/sink20548, phone connected, originalWPA/DHCP/PBC.
+Actual SO_RCVBUF effective360448 confirmed in log. No sysctl/driver changes.
+Uptime12539.69..12549.93 (10.24s): socketinode111433 drops1390->1522
+(+132), CPU1009ticks/user330/system569/softirq1/idle110 =>89.1%busy.
+Intervals include FIFOmax30587us, receivegap98221us; syscall wall duration
+includes scheduling, not proof all that time is pipe-full blocking. Drop
+counter cumulative1436 in ancillary, proc1522; no contradiction (async).
+MemAvailable18992KiB, CmaFree9264KiB/total24576; video-clock late warnings.
+Decision: insufficient to fix frequent stalls; not accepted. Different
+content/time means no controlled percentage improvement from previous132/190.
+Current stream kept active, no rollback interruption yet. Before next source
+candidate, separate hypothesis and baseline required. Proposed next scope
+is bounded receive/output separation; no unbounded/disk video buffering.
+Rollback observerf2d95119 and candidate/rtsp-watch.before-burst.sh retained.
 Base6c64cc1/dc42acc/f2d95119, exact source/build archived. Original tree
 branch candidate/rtp-receive-burst-20261001, no new worktree. Only set
 SO_RCVBUF requested180224 before bind; board default/max180224 and Linux
