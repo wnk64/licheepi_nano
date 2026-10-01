@@ -1,6 +1,29 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned: decoder idle backoff from original player
+Source1e28c1a/planefe169e. Two consistent make-B-j4/strip ARM builds equal
+0bd4666c69b494c0a9288a32be9cad63, SSH versioned deployment verified at
+/root/aic_miracast/candidates/player_decoder_idle_20261001/player-idle.
+Idle-FIFO SIGINT test returned0 and releasedVE/CMA, no forced shutdown.
+ADB automatic disconnect old sink25048 normal0, then newplayer26339/
+watch26340/sink26383, unchanged async99a700f8/GO/WPA/DHCP/PBC/BT.
+Main exit diagnostics included for future EPIPE, not an EPIPE root-cause fix.
+Live first10s CPUdelta1028/user295/sys633/idle100 (~90.3%busy), RTPdrops
+475->583 (+108). Decoder26349cpu51ticks (~5%) /3296voluntary switches
+over~10s (~330/s) versus old24795 ~21% /1758/s; same video but not frame-
+aligned controlledA/B, no exact overall performance percent claim.
+Results at20480calls: r0=1/r1=1824/r2=9/r3=13/r4=0/r5=18633/r6=0;
+~91% NO_BITSTREAM polls confirms idle-loop hypothesis. Native geometry,
+bitstream semantics, PTS, successful frame pacing and display unchanged.
+Read-only corrected sampler two windows12.82/13.80s: CPU88.72/75.32%,
+socketinode161375 drops+81/+152; decoder~5.09/4.83%, switches356/341s.
+Five later11.85..13.51s windows CPU86.99..92.88%, drops41/139/83/100/96,
+decoder4.85..5.38%, switches295..373/s. Videoqueuefull0, still late-clock
+warnings/audio discontinuities; connected after sampling, RAM~18.3MiB
+available/CMA~10.5MiB free. These are not proof of visually stall-free A/V.
+Decision: idle-poll work reduced, useful candidate, full stall fix unaccepted.
+No phone video/rotation/loop changes, no kernel/module/boot changes or stable
+push. Rollback e1d6fed2 remains; pending threecold0/3. Temp helpers cleaned.
 Base8f8a7b0/e1d6fed2, branchcandidate/decoder-idle-wait-20261001; prior AUD
 candidate preserved but not stacked. Complete source/object/bundle and exact
 binary copied to player_decoder_idle_20261001/before, no new worktree.
