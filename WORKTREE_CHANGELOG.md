@@ -1,3 +1,17 @@
+## 2026-10-01 / planned deployment / eliminate test devices at boot
+User authorized kernel removal instead of deferred runtime cleanup.
+Ports verified: COM3 hub exact ON acknowledgement; COM4 Buildroot console.
+Deploy existing sourcea62a764/results0a40071 candidate, release5.7.1,
+zImage64739afc046149ef029e5e4819e03e92. No new source/build or worktree.
+Old board#248 zImage2d16ba197f384e0570071aabf2094c44 will be preserved at
+/root/aic_miracast/candidates/kernel_slim_20261001/rollback/zImage.before.
+Only FAT zImage changes; DTB50499cb0527d269e0da7e436c092f643,
+CMA24MiB, core modules, AIC/player/audio routing remain unchanged.
+Core live module hashes match candidate; no blanket modules_install.
+Cold boot checks: test devices absent, Codec identity, BS SSH/15MHz,
+HCI/BlueALSA, RTC/I2C/display/SD; AIC discovery and phone casting pending.
+Decision: pending deployment, no stable acceptance or GitHub push.
+
 ## 2026-10-01 / planned / remove unused test and foreign-platform drivers
 Base165df40, tagkernel-before-slim-20261001, complete source/config/artifacts
 preserved under /home/wnk/F1C200S_archives/kernel_slim_20261001/before.
