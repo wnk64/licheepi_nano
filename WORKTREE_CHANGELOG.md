@@ -1,5 +1,16 @@
 # Worktree Change Log
 
+## 2026-10-02 pending / full AV ON-OFF-ON results
+Sourcea61ed97/build17357af, ff58d9fc/a683cf70 sameboot31071e77/CMA20.
+ON1 1543.05s/OFF2354.73s/ON2 90.13s zero gaps>250ms/commiterrors.
+Max184577/191762/117200us; content phases differ, no exact gain claim.
+ON2 CPU70.32..77.13%, FIFO3.09..3.63%/123.51..140.35switches/s,
+six socketdrop deltas0; MemAvailable18832..18860/CmaFree7912KiB.
+Bluetooth PCM16627072bytes advancing; startupdrop140288/underruns0.
+Keep VIDEO_RX_BATCH=1 for trial; old cold launcher still selects42d0cfa8.
+Detailed RESULTS.md and frozen local ON1/OFF/ON2 evidence retained.
+No new source/driver/kernel changes; threecold pending, no stable promotion.
+
 ## 2026-10-01 planned / one video handoff per received UDP batch
 Planned7bea12c/sourcea61ed97. New exact byte/capacity/tail/invalid/mixedPID/
 failure/control-stop/default tests and old byte/EPIPE ASan/UBSan pass. Mock800
