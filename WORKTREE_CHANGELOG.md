@@ -92,6 +92,23 @@ Helper final diagnostic failed because ip is absent after launch; processes
 and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
+## 2026-10-01 / ADB-control verified / original candidate unchanged
+Plan promote tested local ADB-shell transport helper into tools/adb_cast_control.py
+on existing tree, no new worktree; existing authorized server5037 only, no
+new adb keys/config/service. Native CLI fails android-home, protocol works.
+Phone dda57287/model23013RK75C: openCAST_SETTINGS, dumpXML, choose enabled
+F1C200S-AIC98:a1:4a:08:13:6a bounds76,759..387,825, tap350,817 succeeds.
+Restart ended player/sink with unchanged async99a700f8, same watchdog/runtime.
+Player22623/watch22624/sink22715; phone activeDisplayState2 and
+mRemoteDisplayConnectedtrue; RTSP negotiated, player decoded native480800.
+Settings-page stream first4096RTP socketdrops0/audio discontinuities0,
+queue peak1808/full0; this low-motion stream is not a video-stability result.
+No driver/kernel/CMA/player/source changes besides helper/docs. Current
+stream remains active. Phone dump under/data/local/tmp removed per read.
+Local one-off probe/start command removed; reusable helper intentionally
+retained for next automatic reconnect/test, use Python and -- before --ui.
+Rollback same unchanged candidate; threecold0/3 and stall fix unaccepted.
+
 ## 2026-10-01 planned: bounded asynchronous FIFO delivery
 Deployment: user disconnected, old sink20548 exited0. New player21525/
 watch21526 waiting new DHCP after11lines; sink99a700f8e1592a68d06d608ff983dfdd
