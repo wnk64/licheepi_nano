@@ -47,6 +47,11 @@ static unsigned long g_ts_packets;
 static unsigned long g_video_ts_packets;
 static uint8_t g_video_batch[RTP_MAX];
 static size_t g_video_batch_bytes;
+#define RX_VIDEO_BYTES (WFD_RX_BATCH * RTP_MAX)
+static uint8_t g_rx_video[RX_VIDEO_BYTES];
+static size_t g_rx_video_bytes, g_rx_video_peak;
+static unsigned long long g_rx_video_discarded;
+static int g_rx_video_enabled;
 static unsigned long g_video_writes;
 static unsigned long long g_write_us, g_write_max_us, g_receive_gap_us;
 static unsigned long g_write_over_5ms, g_write_over_20ms;
@@ -66,6 +71,8 @@ static unsigned long long monotonic_us(void)
 
 static void report_delivery(void)
 {
+    fprintf(stderr, "RTP video handoff: enabled=%d pending=%zu peak=%zu discarded=%llu\n",
+            g_rx_video_enabled, g_rx_video_bytes, g_rx_video_peak, g_rx_video_discarded);
     fprintf(stderr, "RTP receive: calls=%lu packets=%lu truncated=%lu fallback=%d\n",
             g_rx.calls, g_rx.packets_received, g_rx.truncated, g_rx.fallback);
     fprintf(stderr, "delivery: writes=%lu write_us=%llu max_write_us=%llu over5ms=%lu over20ms=%lu max_recv_gap_us=%llu socket_drops=%u\n",
@@ -416,6 +423,40 @@ static void process_ts_packet(const uint8_t *ts)
     write_h264_from_ts_payload(ts + off, TS_SIZE - off, payload_start);
 }
 
+static size_t submit_video(const uint8_t *data, size_t bytes)
+{
+    if (!bytes || g_stop) return 0;
+    unsigned long long started = monotonic_us();
+    size_t wrote;
+    if (g_async_video) {
+        wrote = wfd_video_push(data, bytes) == 0 ? bytes : 0;
+        if (!wrote) {
+            g_video_output_failed = 1;
+            fprintf(stderr, "FIFO async failed: %s; end candidate without corrupting H264\n", strerror(errno));
+        }
+    } else {
+        wrote = fwrite(data, 1, bytes, stdout);
+    }
+    unsigned long long elapsed = monotonic_us() - started;
+    g_write_us += elapsed;
+    if (elapsed > g_write_max_us) g_write_max_us = elapsed;
+    g_write_over_5ms += elapsed > 5000;
+    g_write_over_20ms += elapsed > 20000;
+    g_video_writes++;
+    g_h264_bytes += (unsigned long long)wrote;
+    if (wrote != bytes) g_stop = 1;
+    return wrote;
+}
+
+static void flush_rx_video(void)
+{
+    if (g_rx_video_bytes) {
+        size_t wrote = submit_video(g_rx_video, g_rx_video_bytes);
+        g_rx_video_discarded += g_rx_video_bytes - wrote;
+        g_rx_video_bytes = 0;
+    }
+}
+
 static void process_rtp_packet(const uint8_t *pkt, int len)
 {
     g_video_batch_bytes = 0;
@@ -433,29 +474,18 @@ static void process_rtp_packet(const uint8_t *pkt, int len)
     int ts_count = payload_len / TS_SIZE;
     for (int i = 0; i < ts_count; i++)
         process_ts_packet(p + i * TS_SIZE);
-    /* Flush per RTP packet, never wait for another packet to fill a buffer. */
     if (g_video_batch_bytes && !g_stop) {
-        unsigned long long started = monotonic_us();
-        size_t wrote;
-        if (g_async_video) {
-            wrote = wfd_video_push(g_video_batch, g_video_batch_bytes) == 0 ? g_video_batch_bytes : 0;
-            if (!wrote) {
-                g_video_output_failed = 1;
-                fprintf(stderr, "FIFO async failed: %s; end candidate without corrupting H264\n", strerror(errno));
+        if (g_rx_video_enabled) {
+            if (g_video_batch_bytes > sizeof(g_rx_video) - g_rx_video_bytes)
+                flush_rx_video();
+            if (!g_stop) {
+                memcpy(g_rx_video + g_rx_video_bytes, g_video_batch, g_video_batch_bytes);
+                g_rx_video_bytes += g_video_batch_bytes;
+                if (g_rx_video_bytes > g_rx_video_peak) g_rx_video_peak = g_rx_video_bytes;
             }
         } else {
-            wrote = fwrite(g_video_batch, 1, g_video_batch_bytes, stdout);
+            submit_video(g_video_batch, g_video_batch_bytes);
         }
-        unsigned long long elapsed = monotonic_us() - started;
-        g_write_us += elapsed;
-        if (elapsed > g_write_max_us)
-            g_write_max_us = elapsed;
-        g_write_over_5ms += elapsed > 5000;
-        g_write_over_20ms += elapsed > 20000;
-        g_video_writes++;
-        g_h264_bytes += (unsigned long long)wrote;
-        if (wrote != g_video_batch_bytes)
-            g_stop = 1;
     }
     g_video_batch_bytes = 0;
 }
@@ -517,6 +547,8 @@ int main(int argc, char **argv)
         g_async_video = 1;
         atexit(wfd_video_stop);
     }
+    const char *handoff_enable = getenv("WFD_VIDEO_RX_BATCH");
+    g_rx_video_enabled = g_async_video && handoff_enable && strcmp(handoff_enable, "1") == 0;
 
     const char *audio_enable = getenv("WFD_AUDIO_ENABLE");
     if (audio_enable && strcmp(audio_enable, "1") == 0) {
@@ -736,9 +768,12 @@ int main(int argc, char **argv)
                     }
                 }
             }
+            /* Submit only this already-received batch; never wait for new RTP. */
+            flush_rx_video();
         }
     }
 
+    flush_rx_video();
     fflush(stdout);
     if (wfd_video_report())
         g_video_output_failed = 1;
