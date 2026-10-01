@@ -1,6 +1,15 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / opt-in monotonic FIFO coalescing
+Additional test7ba416f (4KiB no wait + writer accounting) ran3 times ASan/
+UBSan pass. Build record5f5621c. Live player7954/watch7955/sink8008, enabled1,
+same boot/BT/WPA/BS/AIC. First six12.96..15.18s samples CPU82.94..89.31%,
+bitrate5.701..6.063Mbps, all localdrop deltas0; sink worker6.51..7.00% and
+304..341voluntary/s versus old611..676/s. PCM written24.3MB and rising;
+FIFO full0, peak44064, submitted-written736bytes pending intentional wait,
+not discarded. 50940RTP video submissions ->18705actual successful writes.
+Early max video-commit gap156842us/errors0. Plan same-binary option0 control,
+then restore option1; keep batch and loss-IDR on, no phone media changes.
 Plan6d8a1fb/source df407c6, host off/on20lifecycle/full/EPIPE sanitizer tests
 and 3ms-tail/50stop tests pass; mock800 and IDR pass with batch+coalesce.
 Two existing Makefile ARM builds MD5 42d0cfa89120992a427abfde403770c9.
