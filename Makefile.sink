@@ -6,5 +6,5 @@ TARGET ?= miracast_sink_dump.lowest.brarm
 .PHONY: all
 all: $(TARGET)
 
-$(TARGET): miracast_sink_dump.c wfd_lpcm.c wfd_audio.c wfd_lpcm.h wfd_video.c wfd_video.h wfd_loss.h Makefile.sink
+$(TARGET): miracast_sink_dump.c wfd_lpcm.c wfd_audio.c wfd_lpcm.h wfd_video.c wfd_video.h wfd_loss.h wfd_rx.h Makefile.sink
 	$(CC) $(CFLAGS) -pthread -o $@ miracast_sink_dump.c wfd_lpcm.c wfd_audio.c wfd_video.c -lasound

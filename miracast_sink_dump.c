@@ -11,6 +11,9 @@
  * or Cedar playback tool.
  */
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -29,6 +32,7 @@
 #include "wfd_lpcm.h"
 #include "wfd_video.h"
 #include "wfd_loss.h"
+#include "wfd_rx.h"
 
 #define RTSP_PORT 7236
 #define RTP_PORT 1028
@@ -51,6 +55,7 @@ static int g_async_video;
 static int g_video_output_failed;
 static struct wfd_loss g_loss;
 static int g_loss_idr_enabled;
+static struct wfd_rx g_rx;
 static unsigned long long monotonic_us(void)
 {
     struct timespec ts;
@@ -61,6 +66,8 @@ static unsigned long long monotonic_us(void)
 
 static void report_delivery(void)
 {
+    fprintf(stderr, "RTP receive: calls=%lu packets=%lu truncated=%lu fallback=%d\n",
+            g_rx.calls, g_rx.packets_received, g_rx.truncated, g_rx.fallback);
     fprintf(stderr, "delivery: writes=%lu write_us=%llu max_write_us=%llu over5ms=%lu over20ms=%lu max_recv_gap_us=%llu socket_drops=%u\n",
             g_video_writes, g_write_us, g_write_max_us, g_write_over_5ms,
             g_write_over_20ms, g_receive_gap_us, g_socket_drops);
@@ -603,7 +610,9 @@ int main(int argc, char **argv)
     if (set_nonblock(rtsp) < 0 || set_nonblock(rtp) < 0)
         die("nonblock failed: %s", strerror(errno));
 
-    uint8_t pkt[RTP_MAX];
+    const char *batch_env = getenv("WFD_RTP_BATCH");
+    unsigned int receive_limit = batch_env && strcmp(batch_env, "1") == 0 ? WFD_RX_BATCH : 1;
+    fprintf(stderr, "RTP receive batch limit=%u nonblocking=1\n", receive_limit);
     time_t last_packet = time(NULL);
     time_t last_idle_log = 0;
     time_t rtp_stall_since = 0;
@@ -677,53 +686,54 @@ int main(int argc, char **argv)
         }
 
         if (FD_ISSET(rtp, &rfds)) {
-            union { struct cmsghdr align; unsigned char bytes[CMSG_SPACE(sizeof(uint32_t))]; } control;
-            struct iovec iov = { .iov_base = pkt, .iov_len = sizeof(pkt) };
-            struct msghdr msg;
-            memset(&msg, 0, sizeof(msg));
-            msg.msg_iov = &iov;
-            msg.msg_iovlen = 1;
-            msg.msg_control = control.bytes;
-            msg.msg_controllen = sizeof(control.bytes);
-            ssize_t n = recvmsg(rtp, &msg, 0);
-            if (n > 0) {
-                unsigned long long received = monotonic_us();
-                if (previous_receive && received - previous_receive > g_receive_gap_us)
-                    g_receive_gap_us = received - previous_receive;
-                previous_receive = received;
-                for (struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg); cmsg;
-                     cmsg = CMSG_NXTHDR(&msg, cmsg)) {
-                    if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SO_RXQ_OVFL &&
-                        cmsg->cmsg_len >= CMSG_LEN(sizeof(g_socket_drops)))
-                        memcpy(&g_socket_drops, CMSG_DATA(cmsg), sizeof(g_socket_drops));
+            int count = wfd_rx_read(rtp, &g_rx, receive_limit);
+            for (int i = 0; i < count && !g_stop; i++) {
+                struct msghdr *msg = &g_rx.messages[i].msg_hdr;
+                uint8_t *pkt = g_rx.packets[i];
+                ssize_t n = g_rx.messages[i].msg_len;
+                if (msg->msg_flags & MSG_TRUNC) {
+                    g_rx.truncated++;
+                    continue;
                 }
-                if (rtp_payload_offset(pkt, (int)n) >= 0)
-                    wfd_loss_rtp(&g_loss, pkt, (size_t)n);
-                wfd_loss_socket(&g_loss, g_socket_drops);
-                process_rtp_packet(pkt, (int)n);
-                last_packet = time(NULL);
-                rtp_packets++;
-                if ((rtp_packets & 0xfff) == 0) {
-                    wfd_audio_report();
-                    report_delivery();
-                    if (wfd_video_report()) {
-                        g_video_output_failed = 1;
-                        g_stop = 1;
+                if (n > 0) {
+                    unsigned long long received = monotonic_us();
+                    if (previous_receive && received - previous_receive > g_receive_gap_us)
+                        g_receive_gap_us = received - previous_receive;
+                    previous_receive = received;
+                    for (struct cmsghdr *cmsg = CMSG_FIRSTHDR(msg); cmsg;
+                         cmsg = CMSG_NXTHDR(msg, cmsg)) {
+                        if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SO_RXQ_OVFL &&
+                            cmsg->cmsg_len >= CMSG_LEN(sizeof(g_socket_drops)))
+                            memcpy(&g_socket_drops, CMSG_DATA(cmsg), sizeof(g_socket_drops));
                     }
-                }
-                rtp_bytes += (unsigned long long)n;
-                if (!initial_idr_sent && rtp_packets >= 12) {
-                    fprintf(stderr, "request initial IDR after %lu RTP packets\n",
-                            rtp_packets);
-                    send_idr_request(rtsp, &local_cseq);
-                    wfd_loss_initial_request(&g_loss, received);
-                    initial_idr_sent = 1;
-                } else if (g_loss_idr_enabled && initial_idr_sent &&
-                           wfd_loss_request_due(&g_loss, received)) {
-                    fprintf(stderr, "request loss-recovery IDR #%lu missing=%llu socket_missing=%llu\n",
-                            g_loss.requests, (unsigned long long)g_loss.missing,
-                            (unsigned long long)g_loss.socket_missing);
-                    send_idr_request(rtsp, &local_cseq);
+                    if (rtp_payload_offset(pkt, (int)n) >= 0)
+                        wfd_loss_rtp(&g_loss, pkt, (size_t)n);
+                    wfd_loss_socket(&g_loss, g_socket_drops);
+                    process_rtp_packet(pkt, (int)n);
+                    last_packet = time(NULL);
+                    rtp_packets++;
+                    if ((rtp_packets & 0xfff) == 0) {
+                        wfd_audio_report();
+                        report_delivery();
+                        if (wfd_video_report()) {
+                            g_video_output_failed = 1;
+                            g_stop = 1;
+                        }
+                    }
+                    rtp_bytes += (unsigned long long)n;
+                    if (!initial_idr_sent && rtp_packets >= 12) {
+                        fprintf(stderr, "request initial IDR after %lu RTP packets\n",
+                                rtp_packets);
+                        send_idr_request(rtsp, &local_cseq);
+                        wfd_loss_initial_request(&g_loss, received);
+                        initial_idr_sent = 1;
+                    } else if (g_loss_idr_enabled && initial_idr_sent &&
+                               wfd_loss_request_due(&g_loss, received)) {
+                        fprintf(stderr, "request loss-recovery IDR #%lu missing=%llu socket_missing=%llu\n",
+                                g_loss.requests, (unsigned long long)g_loss.missing,
+                                (unsigned long long)g_loss.socket_missing);
+                        send_idr_request(rtsp, &local_cseq);
+                    }
                 }
             }
         }
