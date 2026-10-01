@@ -42,6 +42,16 @@ Source changes remain only two C files plus mock test/records; same kernel,
 DTB/CMA24MiB/fb0480x800/AIC/BS/BT. Decision: verified shutdown candidate;
 phone-streaming, visual and three cold/regression cycles pending0/3, no push.
 
+## 2026-10-01 / runtime pending / new player Miracast readiness
+Plan sourcecd0b01a/MIRACAST_LIFECYCLE_20261001.md. Existing protocol/config
+hashes unchanged; only use e1d6fed2 player candidate. Same#250/ea1b461e boot.
+WFD setters allOK, GO5745MHz/DIRECT-fI/COMPLETED, deviceF1C200S-AIC;
+WPA6960/player6974/DHCP7001/PBC7006/RTSPwatch7007, no phone DHCP/sink yet.
+Pool7MiB/rotate90/raw640x48060/FIFO, no scaling or audio implementation change.
+Available20544KiB before stream; default BS route and headphone preserved.
+Runtime/tmp/manual_miracast_20260920 kept for connection; one-off wrappers
+removed locally. Await phone/visual/long test; full acceptance0/3, no push.
+
 ## 2026-09-30 / planned / opt-in private CMA arena
 Historical provenance resolved: reconstruct main.o using drm_warpper.h from
 3993c9b parent; compile all other sources with current header. Exact ELF MD5
