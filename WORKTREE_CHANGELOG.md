@@ -1,5 +1,20 @@
 # Worktree Change Log
 
+## 2026-10-01 planned / opt-in successful video commit intervals
+Base50426d5, original tree, branch candidate/frame-gap-stats-20261001.
+Existing complete rollback archive player_decoder_idle_20261001/candidate
+contains source.bundle/source-objects.tar.gz/player-idle. Baseline rebuilt
+make -C player-src -B -j4; make -C player-src strip: exact MD5
+0bd4666c69b494c0a9288a32be9cad63. No new worktree or redundant backup.
+Files: driver/drm_warpper.c, utils/frame_gap.h, tests/test_frame_gap.c.
+CEDAR_FRAME_GAP_STATS=1 records wall-clock successful YUV video ioctl gaps,
+not synthetic PTS lateness. Count once per commit even with multiple mounts.
+Five-second windows plus current idle age/lifetime max/error count.
+Accepted ioctls do not prove physical scanout or visual content changes.
+Unchanged: pacing, decoder, audio, geometry, rotation, pool, FIFO, kernel,
+AIC, BS, BT, phone media/orientation/repeat. Pure helper sanitizer tests and
+repeat ARM build precede versioned deployment; no stable promotion/push.
+
 ## 2026-10-01 planned: decoder idle backoff from original player
 Source1e28c1a/planefe169e. Two consistent make-B-j4/strip ARM builds equal
 0bd4666c69b494c0a9288a32be9cad63, SSH versioned deployment verified at
