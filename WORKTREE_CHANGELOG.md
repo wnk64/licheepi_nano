@@ -93,6 +93,14 @@ and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
 ## 2026-10-01 planned: observe live FIFO/receive stalls
+Deployment now active after user disconnect: player19151/watch19152, waiting
+DHCP after7existing lines. Remote sinkf2d951196746d8ada684310d8c53f1f6,
+watcher53c679dbce544d9d1a7a8e998ae7f0ff verified. Existing WPA6960/DHCP12705
+and PBC retained; defaultBluetooth unchanged, no driver/kernel/reboot changes.
+Rollback watcher copied to candidate/rtsp-watch.before-observe.sh, old
+sink/player logs preserved there. Runtime/tmp only, no startup integration.
+Performance diagnosis pending fresh phone stream. Temporary deploy helper
+removed after successful execution.
 Source dc42acc (plan e1a209e), ASan/UBSan batch-byte/EPIPE and mock800
 tests passed; two ARM builds identical MD5f2d951196746d8ada684310d8c53f1f6.
 Artifact staged and SSH remote MD5 verified, current live sink-batch18173
