@@ -1,6 +1,13 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / opt-in successful video commit intervals
+Live candidate4862/sink4948 connected through ADB with existing phone media.
+Native output480x800/pool9MiB confirmed, sustained LPCM writes, FIFO full0.
+Successful-commit diagnostics show genuine gaps up to1266585us, errors0;
+three 12.92..13.11s samples CPU94.94..96.38%, RTPdrops385/443/264 at6.1Mbps.
+No scanout acceptance claim. Plan single-variable comparison: disable only
+WFD_LOSS_IDR recovery requests; same player/sink binaries/audio/initial IDR.
+Retain IDR-on logs locally; add read-only host summary with two unit tests.
 Plan003456e/source940fdc5. Host GCC ASan/UBSan assertions pass. Two ARM
 make-B-j4/strip outputs byte-identical a683cf70a95ba2759b5c9d2b1e0dc016.
 Planned runtime: CEDAR_FRAME_GAP_STATS=1 with existing rotate90/pool9/default
