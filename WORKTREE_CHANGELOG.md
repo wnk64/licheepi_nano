@@ -93,6 +93,11 @@ and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
 ## 2026-10-01 planned: observe live FIFO/receive stalls
+Source dc42acc (plan e1a209e), ASan/UBSan batch-byte/EPIPE and mock800
+tests passed; two ARM builds identical MD5f2d951196746d8ada684310d8c53f1f6.
+Artifact staged and SSH remote MD5 verified, current live sink-batch18173
+is not replaced yet. Waiting user disconnect; no stop/reboot. New watcher
+candidate only changes sink path; original installed watcher is rollback.
 Base3aff659/sourcea282376/db9732dd, exact source bundle and binary retained.
 Branch candidate/rtp-stall-observe-20261001 in original tree, no worktree.
 User reports frequent stalls; batching alone insufficient, not certified.
