@@ -9,6 +9,7 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 #include <sys/mman.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "driver/drm_warpper.h"
@@ -16,6 +17,14 @@
 #include "driver/srgn_drm.h"
 #include "config.h"
 #include "utils/spsc_queue.h"
+#include "utils/frame_gap.h"
+
+static int64_t drm_monotonic_us(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (int64_t)ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+}
 
 static inline int DRM_IOCTL(int fd, unsigned long cmd, void *arg) {
   int ret = drmIoctl(fd, cmd, arg);
@@ -68,9 +77,15 @@ static void* drm_warpper_display_thread(void *arg){
     int ret;
 
     log_info("==> DRM_Warpper Display Thread Started!");
+    const char *stats_env = getenv("CEDAR_FRAME_GAP_STATS");
+    int stats_enabled = stats_env && strcmp(stats_env, "1") == 0;
+    frame_gap_t gaps = {0};
+    unsigned long commit_errors = 0;
+    if (stats_enabled) gaps.report_us = drm_monotonic_us();
 
     while(atomic_load(&drm_warpper->thread_running)){
         drm_warpper_wait_for_vsync(drm_warpper);
+        int video_mount = 0;
         // log_info("vsync");
         commit_req.size = 0;
         for(int i = 0; i < 4; i++){
@@ -86,6 +101,9 @@ static void* drm_warpper_display_thread(void *arg){
                     commits[commit_req.size].arg0 = item->mount.arg0;
                     commits[commit_req.size].arg1 = item->mount.arg1;
                     commits[commit_req.size].arg2 = item->mount.arg2;
+                    if (i == DRM_WARPPER_LAYER_VIDEO &&
+                        item->mount.type == DRM_SRGN_ATOMIC_COMMIT_MOUNT_FB_YUV)
+                        video_mount = 1;
                     commit_req.size++;
                     if(item->mount.type == DRM_SRGN_ATOMIC_COMMIT_MOUNT_FB_NORMAL 
                         || item->mount.type == DRM_SRGN_ATOMIC_COMMIT_MOUNT_FB_YUV){
@@ -109,6 +127,26 @@ static void* drm_warpper_display_thread(void *arg){
             ret = drmIoctl(drm_warpper->fd, DRM_IOCTL_SRGN_ATOMIC_COMMIT, &commit_req);
             if(ret < 0){
                 log_error("DRM_IOCTL_SRGN_ATOMIC_COMMIT failed %s(%d)", strerror(errno), errno);
+                if (stats_enabled && video_mount) commit_errors++;
+            } else if (stats_enabled && video_mount) {
+                frame_gap_success(&gaps, drm_monotonic_us());
+            }
+        }
+        if (stats_enabled) {
+            int64_t now = drm_monotonic_us();
+            if (now - gaps.report_us >= 5000000) {
+                log_info("video commits: total=%llu window=%llu span_us=%lld max_gap_us=%llu lifetime_max_us=%llu over50=%llu over100=%llu over250=%llu idle_us=%llu errors=%lu",
+                         (unsigned long long)gaps.total,
+                         (unsigned long long)gaps.window_frames,
+                         (long long)(now - gaps.report_us),
+                         (unsigned long long)gaps.max_gap_us,
+                         (unsigned long long)gaps.lifetime_max_gap_us,
+                         (unsigned long long)gaps.over50,
+                         (unsigned long long)gaps.over100,
+                         (unsigned long long)gaps.over250,
+                         (unsigned long long)frame_gap_idle(&gaps, now),
+                         commit_errors);
+                frame_gap_reset_window(&gaps, now);
             }
         }
     }
