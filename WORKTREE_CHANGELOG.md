@@ -92,6 +92,19 @@ Helper final diagnostic failed because ip is absent after launch; processes
 and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
+## 2026-10-01 planned: unattended cast-only session and read-only sampler
+Add tools/adb_cast_session.py, tools/board_sample.py on original sink tree,
+base10d2789/async99a700f8; no sink/runtime binary change. Session helper uses
+actual enabled target bounds, disconnect confirmation, remote-display-state
+checks, then BACK to prior media. Never changes video/rotation/loop settings.
+Read-only sampler validates live PIDs/socketinode; measures aggregateCPU,
+thread ticks/voluntary switches, socketdrops/queue-accounting and RAM.
+Changed socket/PID or failed read is not automatic restart permission.
+Session connect/disconnect/status already exercised on live phone; target
+remainsF1C200S-AIC98:a1:4a:08:13:6a, serialdda57287. Sampler test current
+idle-decoder candidate without changing stream. Tools intentionally retained
+for next automated comparison; source/Git/Chinese records required.
+
 ## 2026-10-01 / ADB-control verified / original candidate unchanged
 Plan promote tested local ADB-shell transport helper into tools/adb_cast_control.py
 on existing tree, no new worktree; existing authorized server5037 only, no
