@@ -74,7 +74,7 @@ def main():
                     continue
                 target.addfile(info, source.extractfile(info) if info.isfile() else None)
     for name in ['README.md', 'RESULTS.md', 'archive_snapshot.py', 'finalize_snapshot.py', 'export_bundle_tree.py',
-                 'start-cast.sh', 'archive-changelog-cn.md', 'optimization-record-cn.txt']:
+                 'start-cast.sh', 'WORKTREE_CHANGELOG.md', 'archive-changelog-cn.md', 'optimization-record-cn.txt']:
         shutil.copy2(PUBLIC + '/' + name, ROOT + '/' + name)
     manifest['files'] = {}
     for directory, dirs, files in os.walk(ROOT):
@@ -103,6 +103,13 @@ def main():
             raise RuntimeError('Oversized Git blob: ' + name)
         os.makedirs(os.path.dirname(PUBLIC + '/' + name), exist_ok=True)
         shutil.copy2(path, PUBLIC + '/' + name)
+    with open(PUBLIC + '/GITHUB_SHA256SUMS', 'w') as stream:
+        for name, values in sorted(manifest['files'].items()):
+            if os.path.isfile(PUBLIC + '/' + name):
+                if sha(PUBLIC + '/' + name) != values['sha256']:
+                    raise RuntimeError('Public archive differs from local: ' + name)
+                stream.write(values['sha256'] + '  ' + name + '\n')
+        stream.write(sha(PUBLIC + '/manifest.json') + '  manifest.json\n')
     for name in ['sources/kernel.tar.gz', 'sources/aic8800.tar.gz', 'sources/player.tar.gz',
                  'sources/sink.tar.gz', 'sources/libcedarx.tar.gz', 'sources/protocol-tools.tar.gz',
                  'buildroot-source-and-config.tar.gz', 'runtime.tar',

@@ -21,6 +21,9 @@ GitHub 账号已由 Wnjbk 改为 **wnk64**。当前仓库：
 
 最后一个分支内 `runtime/snapshot-20261002` 是归档入口。
 该目录的 `SHA256SUMS` 与 `manifest.json` 记录精确源码提交、文件哈希及大小。
+`SHA256SUMS`覆盖Ubuntu本地全包；GitHub目录使用`sha256sum -c GITHUB_SHA256SUMS`，不要求远端存在本地SDK大文件。
+最终入口为快照分支miracast-snapshot-20261002及校验标签miracast-snapshot-20261002-verified。
+verified仅指归档和远端哈希校验，不表示已经通过三次冷启动稳定验收。
 `sources/` 额外保存源码压缩包，不能用旧播放器已跟踪的构建对象代替重新构建。
 `runtime.tar` 保存白名单选出的板端实际模块、固件、协议程序、播放器、接收器及初始化脚本，不包含家庭Wi-Fi密码、SSH密钥、访问令牌或视频。
 

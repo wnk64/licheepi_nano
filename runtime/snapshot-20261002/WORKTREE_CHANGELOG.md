@@ -25,3 +25,8 @@ missing; verified entire82fdaea tree exported, not full-history certified.
 Buildroot personal network config replaced by placeholders in archive only.
 Kernel/AIC/player remote refs independently verified; sink snapshot staged
 for final push. No board deployment/source rebuild/new development worktree.
+
+Initial snapshot publish7d881a6/tagmiracast-snapshot-20261002 remotely verified.
+Final metadata refresh adds GITHUB_SHA256SUMS for public subset and
+miracast-snapshot-20261002-verified tag; historical refs are not overwritten.
+Verified means archive checksums only, not threecold stable acceptance.

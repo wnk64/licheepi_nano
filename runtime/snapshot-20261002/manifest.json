@@ -1,24 +1,24 @@
 {
   "files": {
     "README.md": {
-      "bytes": 5641,
-      "sha256": "92c9c4d7ba4f25e1fbe62d115477a006f8e8e9b71e8099ebf1145e6e7858ea06"
+      "bytes": 5979,
+      "sha256": "840e87dcd1cc2690f7049e668ff90dc7d973dd010dd4e33741bdd6578ef47412"
     },
     "RESULTS.md": {
       "bytes": 2368,
       "sha256": "9a5e6948e68eb7c522580ad9ebdabdc81023f746b1cf4e985ea96c35645fde20"
     },
     "WORKTREE_CHANGELOG.md": {
-      "bytes": 904,
-      "sha256": "e7d15b66aa8743761ad8fd33ba4b66e4cafe23a41653255aa49e8f7af80ee43c"
+      "bytes": 2076,
+      "sha256": "cf240cdaefc43df1a4b93e4a5f2f4a5eee104d8552f2848d403a8398a3c6750e"
     },
     "aic-build-prerequisites.tar": {
       "bytes": 22118400,
       "sha256": "e14dab5df8ede6e628ff2f3a4efc86633f2b2233c65e62ea295b5bbaa0d7925e"
     },
     "archive-changelog-cn.md": {
-      "bytes": 995,
-      "sha256": "7257e65c6d20075cb112e15779b87ddb0e5be1a32dbc11547eea2ed07bf3bbea"
+      "bytes": 2257,
+      "sha256": "aa11ba1bf598c4c73783b52069494bc95520ece20513bd45c465088b4f879817"
     },
     "archive_snapshot.py": {
       "bytes": 5291,
@@ -34,7 +34,7 @@
     },
     "buildroot-source-and-config.tar.gz": {
       "bytes": 10391662,
-      "sha256": "40aa46c697c77300555f7742b31aea2e0a7adf1087cb343b10a602106187d12a"
+      "sha256": "c3ea0edfca653371c42dda85d5def74dcd1d86d7ff28579832453638274035a1"
     },
     "bundles/aic8800.bundle": {
       "bytes": 1206877,
@@ -69,8 +69,8 @@
       "sha256": "7ccb88878bb43c9698d923fc5147947c5d726f8f61969751c3688444ca9bfd89"
     },
     "finalize_snapshot.py": {
-      "bytes": 7703,
-      "sha256": "dbc6f77891445b1c77c7bd37930f2b54e315bd4c11929be0b282857ca33080da"
+      "bytes": 8197,
+      "sha256": "005b055f088f107778b9090d00ed3bd3ad5bbe99af64f728a4560d78d9b9941f"
     },
     "kernel-build-state.tar.gz": {
       "bytes": 239280650,
@@ -78,7 +78,7 @@
     },
     "kernel-recovery-artifacts.tar.gz": {
       "bytes": 22625210,
-      "sha256": "1ee88fff14dc4a7151d81cfc737a5ff67e0fc4ef0a66896932948da25bcc7fa1"
+      "sha256": "9da3556dc0039d1bdf804d409e3d86c7022bdc2af7e77ef40cbc4ba3a0bd3a41"
     },
     "optimization-record-cn.txt": {
       "bytes": 24824,
