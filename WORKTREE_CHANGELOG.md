@@ -93,6 +93,12 @@ and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
 ## 2026-10-01 planned: loss-triggered rate-limited IDR recovery
+Sourceb85e58e/plan7ccd593; policy wrap/SSRC/cooldown/100k packets and
+RTP byte/EPIPE sanitizer tests pass; mock800 M1-M7 and gap+source200+
+duplicate/reorder/cooldown tests pass. Two ARM builds identical
+273b1d0a7beec8b0aebb60b17bbf319e. Not deployed yet. Add sampler NIC rxMbps
+counter and fixture for I-frame bandwidth comparison (read-only host tools,
+no sink binary effect), unit validation before use.
 Baseeab7388/async99a700f8 exactly rebuilt before edit; complete source,
 Makefile/dependencies/bundle/binary in miracast_loss_idr_20261001/before.
 Original tree branchcandidate/loss-idr-recovery-20261001, no worktree.

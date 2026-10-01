@@ -25,12 +25,17 @@ def parse_rtp_line(line):
             "queue_accounting_bytes": int(values[4].split(":")[1], 16)}
 
 
+def parse_wlan1_line(line):
+    values = list(map(int, line.partition(":")[2].split()))
+    return {"rx_bytes": values[0], "rx_packets": values[1], "rx_drops": values[3]}
+
+
 def snapshot(host):
     ids = ssh(host, f"cat {RUNTIME}/player.pid {RUNTIME}/sink.pid").split()
     if len(ids) != 2 or not all(x.isdigit() for x in ids):
         raise RuntimeError("Missing or invalid runtime PID files")
     player, sink = ids
-    command = f"test -d /proc/{player} && test -d /proc/{sink} && cat /proc/uptime /proc/stat /proc/net/udp /proc/meminfo /proc/{player}/task/*/stat /proc/{player}/task/*/status /proc/{sink}/task/*/stat /proc/{sink}/task/*/status"
+    command = f"test -d /proc/{player} && test -d /proc/{sink} && cat /proc/uptime /proc/stat /proc/net/udp /proc/net/dev /proc/meminfo /proc/{player}/task/*/stat /proc/{player}/task/*/status /proc/{sink}/task/*/stat /proc/{sink}/task/*/status"
     data = ssh(host, command)
     result = {"player": int(player), "sink": int(sink), "threads": {}, "memory_kib": {}}
     current = None
@@ -41,6 +46,8 @@ def snapshot(host):
             result["cpu"] = list(map(int, line.split()[1:9]))
         elif re.match(r"\s*\d+: [0-9A-Fa-f]{8}:0404 ", line):
             result["rtp"] = parse_rtp_line(line)
+        elif re.match(r"\s*wlan1:", line):
+            result["wlan1"] = parse_wlan1_line(line)
         elif re.match(r"\d+ \(.*\) ", line):
             tid = int(line.split()[0])
             fields = line.rsplit(") ", 1)[1].split()
@@ -71,7 +78,12 @@ def delta(old, new):
         if before:
             threads[tid] = {"cpu_pct": round(100 * (values["ticks"] - before["ticks"]) / total, 2),
                             "voluntary_per_s": round((values.get("switches", 0) - before.get("switches", 0)) / elapsed, 2)}
-    return {"elapsed_s": round(elapsed, 2), "player": new["player"], "sink": new["sink"],
+    rx_mbps = None
+    if "wlan1" in old and "wlan1" in new:
+        rx_bytes = new["wlan1"]["rx_bytes"] - old["wlan1"]["rx_bytes"]
+        if rx_bytes >= 0:
+            rx_mbps = round(rx_bytes * 8 / elapsed / 1000000, 3)
+    return {"elapsed_s": round(elapsed, 2), "player": new["player"], "sink": new["sink"], "wlan1_rx_mbps": rx_mbps,
             "busy_pct": round(100 * (total - cpu[3] - cpu[4]) / total, 2),
             "rtp_drops_delta": new["rtp"]["drops"] - old["rtp"]["drops"] if same else None,
             "rtp": new["rtp"], "threads": threads, "memory_kib": new["memory_kib"]}
