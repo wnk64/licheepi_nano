@@ -1,6 +1,11 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / opt-in monotonic FIFO coalescing
+Later same-session validation: /proc8790/exe MD542d0cfa8 and /proc8743/exe
+a683cf70 match selected artifacts. 25519successful commits, lifetime max
+236346us/errors0 (longer than saved210s max120992us, not a contradiction).
+Phone still connected. HCI UART UP RUNNING, TX405244844bytes/1138295ACL,
+errors0 at one observation; single HCI snapshot alone is not audible proof.
 Results FIFO_COALESCE_RESULTS_20261001.md. On1 240.450371s/10339commits/
 43.00Hz/max156842us; on2 210.316681s/10760commits/51.16Hz/max120992us;
 both zero gaps>250ms/errors0, not matched-phase or optical smoothness proof.
