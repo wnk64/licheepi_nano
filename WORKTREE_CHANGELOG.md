@@ -1,6 +1,26 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / bounded nonblocking UDP batch reception
+Final evidence RECVMMSG_RESULTS_20261001.md. Run1 170.316938s/7730commits,
+45.39Hz/0gaps>250ms/max200550us; run2 210.46676s/10136commits,48.16Hz/
+1gap>250ms/max1083776us. Baseline636.235922s/25888commits,40.69Hz/
+106gaps>250ms/max1784684us; not frame-aligned percentage proof. Errors0.
+Full audio persisted through both reconnects, fallback0/truncated0/full0.
+Run1 six localdrop deltas34/0/0/4/0/0; run2 55/8/0/28/0/1. Run2
+CPU86.41..93.03%, sink main10.83..12.62%, worker7.41..9.54% and~598..776
+voluntary switches/s. Same kernel/drivers/BT route/BS SSH/phone settings.
+Current6796/6797/6846 kept; clear improvement but occasional1s stall remains.
+Decision pending; no stable promotion, cold0/3. Next bounded FIFO coalescing.
+Live first run player6442/watch6443/sink6497, same boot ea1b461e, ADB
+connection succeeds and restores media. Header reports batch16/fallback0.
+First53k datagrams/3979receive calls (~13.4/call), truncation0. PCM written
+16846208 continues, video40853528bytes submitted=written/full0. Initial
+three13.43..14.01s samples CPU89.72..96.06%, localdrops34/0/0 at5.515..5.963Mbps;
+baseline12.81/12.51s CPU97.50/95.59%, drops330/437 at6.061/6.033Mbps.
+Early max real video-commit gap200550us versus baseline1784684us; errors0.
+Content phases are not exact frame aligned; improvement promising but pending,
+not smoothness/long-duration/cold-boot proof. Plan same-candidate reconnect
+to confirm full audio reopening and sustained native output, no driver reset.
 Plan1441615/source5dc6425. Actual socket helper and original RTP-byte/EPIPE
 ASan/UBSan tests pass; mock800 M1-M7 and rate-limited IDR tests pass with
 WFD_RTP_BATCH=1. Profile first invocation lacked required800 argument and
