@@ -919,6 +919,8 @@ static void *mp_decoder_thread(void *param)
     long long next_frame_time = 0;
     int64_t fallback_interval = mp_frame_interval_us(mp);
     int native_view_logged = 0;
+    unsigned long decode_calls = 0;
+    unsigned long decode_results[7] = {0};
 
 
     next_frame_time = mp_get_now_us() + fallback_interval;
@@ -928,8 +930,6 @@ static void *mp_decoder_thread(void *param)
              (long long)fallback_interval);
 
     while (1) {
-        usleep(50);
-
         pthread_rwlock_rdlock(&mp->thread.rwlock);
         end_of_stream = mp->thread.end_of_stream;
         int state = mp->thread.state;
@@ -959,12 +959,27 @@ static void *mp_decoder_thread(void *param)
 
         // long long start = mp_get_now_us();
         ret = DecodeVideoStream(decoder, end_of_stream, 0, 0, 0);
+        decode_calls++;
+        if (ret >= 0 && ret < 7)
+            decode_results[ret]++;
+        if ((decode_calls & 4095) == 0) {
+            log_info("decoder calls=%lu results0..6=%lu,%lu,%lu,%lu,%lu,%lu,%lu idle_wait_us=2000",
+                     decode_calls, decode_results[0], decode_results[1],
+                     decode_results[2], decode_results[3], decode_results[4],
+                     decode_results[5], decode_results[6]);
+        }
         // long long finish = mp_get_now_us();
         // log_debug("frame time: %lld us", finish - start);
 
         if (end_of_stream == 1 && ret == VDECODE_RESULT_NO_BITSTREAM) {
             log_info("data end!!!");
             break;
+        }
+
+        if (ret == VDECODE_RESULT_NO_BITSTREAM ||
+            ret == VDECODE_RESULT_NO_FRAME_BUFFER) {
+            usleep(2000);
+            continue;
         }
 
         if (ret == VDECODE_RESULT_KEYFRAME_DECODED ||

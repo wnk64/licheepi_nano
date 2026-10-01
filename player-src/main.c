@@ -79,6 +79,11 @@ int main(int argc, char **argv)
         sleep(1);
     }
 
+    pthread_rwlock_rdlock(&g_mediaplayer.thread.rwlock);
+    int final_thread_state = g_mediaplayer.thread.state;
+    pthread_rwlock_unlock(&g_mediaplayer.thread.rwlock);
+    log_info("main exit: signal_stop=%d status=%d thread_state=0x%x",
+             !g_running, mediaplayer_get_status(&g_mediaplayer), final_thread_state);
     mediaplayer_stop(&g_mediaplayer);
     mediaplayer_destroy(&g_mediaplayer);
     drm_warpper_destroy(&g_drm_warpper);
