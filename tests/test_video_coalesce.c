@@ -22,6 +22,20 @@ static void read_exact(int fd, uint8_t *out, size_t bytes)
     }
 }
 
+static void wait_written(size_t expected)
+{
+    uint64_t start = now_us();
+    for (;;) {
+        pthread_mutex_lock(&output->lock);
+        int ready = output->written == expected;
+        assert(!output->failed);
+        pthread_mutex_unlock(&output->lock);
+        if (ready) return;
+        assert(now_us() - start < 1000000);
+        usleep(100);
+    }
+}
+
 int main(void)
 {
     signal(SIGPIPE, SIG_IGN);
@@ -45,11 +59,20 @@ int main(void)
     }
     read_exact(p[0], got, sizeof(got));
     assert(!memcmp(input, got, sizeof(input)));
+    wait_written(sizeof(input) + 1);
     pthread_mutex_lock(&output->lock);
     assert(output->coalesce && output->coalesce_blocks > 0);
     assert(output->submitted == sizeof(input) + 1);
     assert(output->written == output->submitted);
     assert(!output->failed && !output->full);
+    unsigned long previous_blocks = output->coalesce_blocks;
+    pthread_mutex_unlock(&output->lock);
+    assert(!wfd_video_push(input, VIDEO_BLOCK_BYTES));
+    read_exact(p[0], got, VIDEO_BLOCK_BYTES);
+    assert(!memcmp(input, got, VIDEO_BLOCK_BYTES));
+    wait_written(sizeof(input) + 1 + VIDEO_BLOCK_BYTES);
+    pthread_mutex_lock(&output->lock);
+    assert(output->coalesce_blocks == previous_blocks);
     pthread_mutex_unlock(&output->lock);
     wfd_video_report();
     wfd_video_stop();
