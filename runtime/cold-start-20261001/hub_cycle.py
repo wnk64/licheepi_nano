@@ -1,5 +1,6 @@
 """Delegate verified power commands to the debug-hub skill, capture boot UART."""
 import argparse
+import datetime
 import importlib.util
 import json
 import pathlib
@@ -28,8 +29,10 @@ def main():
         with serial.Serial(args.console_port, 115200, timeout=0.2) as console:
             console.reset_input_buffer()
             hub.send_command("OFF", 3)
+            off_ack_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
             time.sleep(args.off_seconds)
             hub.send_command("ON", 3)
+            on_ack_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
             deadline = time.monotonic() + args.boot_seconds
             while time.monotonic() < deadline:
                 chunk = console.read(4096)
@@ -42,6 +45,7 @@ def main():
     marker = b"U-Boot" in data or b"Linux version" in data
     print(json.dumps({"power_port": args.power_port, "console_port": args.console_port,
                       "off_ack": True, "on_ack": True, "off_seconds": args.off_seconds,
+                      "off_ack_utc": off_ack_utc, "on_ack_utc": on_ack_utc,
                       "console_bytes": len(data), "boot_marker": marker, "log": args.log}))
     if not marker:
         raise RuntimeError("power acknowledgements verified but no boot marker captured")
