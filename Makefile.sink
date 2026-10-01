@@ -1,0 +1,10 @@
+CROSS_COMPILE ?= /home/wnk/LicheePi_Nano/buildroot-2018.02.11/output/host/bin/arm-buildroot-linux-gnueabi-
+CC := $(CROSS_COMPILE)gcc
+CFLAGS := -Os -fno-builtin -march=armv5te
+TARGET ?= miracast_sink_dump.lowest.brarm
+
+.PHONY: all
+all: $(TARGET)
+
+$(TARGET): miracast_sink_dump.c Makefile.sink
+	$(CC) $(CFLAGS) -o $@ $<
