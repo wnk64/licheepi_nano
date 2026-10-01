@@ -1,3 +1,19 @@
+## 2026-10-01 / planned / command-line-only CMA20 trial
+User requests CMA20 and further CPU/cadence optimization; separate switches.
+Original tree base5f850b1/tagkernel-before-cma20-20261001, branch
+candidate/cma20-bootargs-20261001. Existing complete fbdev_single candidate
+archive source/config/prerequisites/module set preserved. All baseline hashes
+match: config3e4a7d09/vmlinuxeb0d95a0/System.map998a9129/zImagebffc71e8;
+documented kernelrelease ARCHarm/Linaro7.2.1/LOCALVERSION= returns5.7.1.
+First read-only FAT mount /dev/mmcblk0p1 to identify exact boot script and
+save its small source/image rollback. No zImage/DTB/modules/.config writes.
+Plan boot script text24M->20M only if exact baseline can be reproduced.
+Keep sink42d0cfa8/playera683cf70/fullBluetooth/800x48060/native90/pool9 and
+protected AIC/BS SSH/display/BT/I2C unchanged; no simultaneous player change.
+Shrinking CMA doesn't guarantee MemAvailable+4MiB; verify allocator behavior.
+Preflight rollback/deploy hash checks/unmount required before restart.
+Decision pending0/3; no stable push or new worktree.
+
 ## 2026-10-01 / planned / single-height fbdev allocation
 User authorizes display buffer only; Slab investigation read-only.
 Base44d8a9f/#249 complete-source zImage64739afc046149ef029e5e4819e03e92.
