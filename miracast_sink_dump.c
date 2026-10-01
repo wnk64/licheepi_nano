@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include "wfd_lpcm.h"
 #include "wfd_video.h"
+#include "wfd_loss.h"
 
 #define RTSP_PORT 7236
 #define RTP_PORT 1028
@@ -48,6 +49,8 @@ static unsigned long g_write_over_5ms, g_write_over_20ms;
 static uint32_t g_socket_drops;
 static int g_async_video;
 static int g_video_output_failed;
+static struct wfd_loss g_loss;
+static int g_loss_idr_enabled;
 static unsigned long long monotonic_us(void)
 {
     struct timespec ts;
@@ -63,6 +66,9 @@ static void report_delivery(void)
             g_write_over_20ms, g_receive_gap_us, g_socket_drops);
     g_write_us = g_write_max_us = g_receive_gap_us = 0;
     g_write_over_5ms = g_write_over_20ms = 0;
+    fprintf(stderr, "RTP recovery: missing=%llu socket_missing=%llu duplicate=%lu reordered=%lu idr_requests=%lu pending=%d enabled=%d\n",
+            (unsigned long long)g_loss.missing, (unsigned long long)g_loss.socket_missing,
+            g_loss.duplicates, g_loss.reordered, g_loss.requests, g_loss.pending, g_loss_idr_enabled);
 }
 
 struct rtsp_reader {
@@ -495,6 +501,8 @@ int main(int argc, char **argv)
     signal(SIGINT, on_signal);
     signal(SIGTERM, on_signal);
     signal(SIGPIPE, SIG_IGN);
+    const char *loss_enable = getenv("WFD_LOSS_IDR");
+    g_loss_idr_enabled = loss_enable && strcmp(loss_enable, "1") == 0;
     const char *async_enable = getenv("WFD_VIDEO_ASYNC");
     if (async_enable && strcmp(async_enable, "1") == 0) {
         if (wfd_video_start(fileno(stdout)) != 0)
@@ -689,6 +697,9 @@ int main(int argc, char **argv)
                         cmsg->cmsg_len >= CMSG_LEN(sizeof(g_socket_drops)))
                         memcpy(&g_socket_drops, CMSG_DATA(cmsg), sizeof(g_socket_drops));
                 }
+                if (rtp_payload_offset(pkt, (int)n) >= 0)
+                    wfd_loss_rtp(&g_loss, pkt, (size_t)n);
+                wfd_loss_socket(&g_loss, g_socket_drops);
                 process_rtp_packet(pkt, (int)n);
                 last_packet = time(NULL);
                 rtp_packets++;
@@ -705,7 +716,14 @@ int main(int argc, char **argv)
                     fprintf(stderr, "request initial IDR after %lu RTP packets\n",
                             rtp_packets);
                     send_idr_request(rtsp, &local_cseq);
+                    wfd_loss_initial_request(&g_loss, received);
                     initial_idr_sent = 1;
+                } else if (g_loss_idr_enabled && initial_idr_sent &&
+                           wfd_loss_request_due(&g_loss, received)) {
+                    fprintf(stderr, "request loss-recovery IDR #%lu missing=%llu socket_missing=%llu\n",
+                            g_loss.requests, (unsigned long long)g_loss.missing,
+                            (unsigned long long)g_loss.socket_missing);
+                    send_idr_request(rtsp, &local_cseq);
                 }
             }
         }
