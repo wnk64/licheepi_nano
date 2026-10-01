@@ -1,6 +1,15 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / bounded nonblocking UDP batch reception
+Plan1441615/source5dc6425. Actual socket helper and original RTP-byte/EPIPE
+ASan/UBSan tests pass; mock800 M1-M7 and rate-limited IDR tests pass with
+WFD_RTP_BATCH=1. Profile first invocation lacked required800 argument and
+failed wrapper only; corrected invocation and full rerun passed.
+Two ARM builds c4cfdcddbedbb1851e65fbe0b2cb3e52, existing Makefile/toolchain.
+Planned SSH candidate /root/aic_miracast/candidates/miracast_recvmmsg_20261001/
+sink-recvmmsg. Baseline273b1d0a untouched; same a683cf70 frame-gap player.
+Runtime watcher receives WFD_RTP_BATCH=1/WFD_LOSS_IDR=1 via environment;
+wait old sink/player/watcher terminal before starting and phone reconnect.
 Original tree branch candidate/recvmmsg-20261001 from21afbcd, immutable tag
 sink-before-recvmmsg-20261001. Existing full source/dependency/binary archive
 miracast_loss_idr_20261001/candidate; exact baseline reproduced with
