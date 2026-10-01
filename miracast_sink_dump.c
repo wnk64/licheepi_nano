@@ -47,6 +47,7 @@ static unsigned long long g_write_us, g_write_max_us, g_receive_gap_us;
 static unsigned long g_write_over_5ms, g_write_over_20ms;
 static uint32_t g_socket_drops;
 static int g_async_video;
+static int g_video_output_failed;
 static unsigned long long monotonic_us(void)
 {
     struct timespec ts;
@@ -425,8 +426,10 @@ static void process_rtp_packet(const uint8_t *pkt, int len)
         size_t wrote;
         if (g_async_video) {
             wrote = wfd_video_push(g_video_batch, g_video_batch_bytes) == 0 ? g_video_batch_bytes : 0;
-            if (!wrote)
+            if (!wrote) {
+                g_video_output_failed = 1;
                 fprintf(stderr, "FIFO async failed: %s; end candidate without corrupting H264\n", strerror(errno));
+            }
         } else {
             wrote = fwrite(g_video_batch, 1, g_video_batch_bytes, stdout);
         }
@@ -692,8 +695,10 @@ int main(int argc, char **argv)
                 if ((rtp_packets & 0xfff) == 0) {
                     wfd_audio_report();
                     report_delivery();
-                    if (wfd_video_report())
+                    if (wfd_video_report()) {
+                        g_video_output_failed = 1;
                         g_stop = 1;
+                    }
                 }
                 rtp_bytes += (unsigned long long)n;
                 if (!initial_idr_sent && rtp_packets >= 12) {
@@ -707,6 +712,8 @@ int main(int argc, char **argv)
     }
 
     fflush(stdout);
+    if (wfd_video_report())
+        g_video_output_failed = 1;
     wfd_video_stop();
     report_delivery();
     fprintf(stderr,
@@ -715,5 +722,5 @@ int main(int argc, char **argv)
             g_h264_bytes, g_video_writes);
     close(rtp);
     close(rtsp);
-    return 0;
+    return g_video_output_failed ? 1 : 0;
 }
