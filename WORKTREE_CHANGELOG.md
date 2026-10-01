@@ -1,6 +1,20 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / opt-in successful video commit intervals
+Results: diagnostic source940fdc5, host summary305e685 (3 Python tests pass
+on Windows and VM; zero-frame windows after first commit included).
+IDR-on sample125.250343s:4842 commits/38.66Hz,25 gaps>250ms,max1266585us.
+IDR-off sample130.284807s:4502 commits/34.56Hz,16 gaps>250ms,max3983463us,
+sampled idle3349888us. Both errors0/audio sustained; no strict same-frame
+alignment, so not an exact performance-ratio claim. Off CPU84.02..96.02%,
+localdrops35..178 per12.27..17.37s, bitrate4.675..5.93Mbps.
+Decision: retain recovery IDR; lower drop counts alone do not mean smoother
+playback. Restore WFD_LOSS_IDR=1, player5566/watch5567/sink5617, same boot
+ea1b461e-c82b-4fec-9d32-5256689ece80 and protected drivers/BT route.
+Restored session already reports max1784684us, so no stall-free claim.
+Live diagnostics remain opt-in and pending; cold acceptance0/3/no push.
+Next hypothesis: bounded UDP receive batching reduces select/recvmsg overhead
+without changing packet order, RTSP fairness, payload bytes or FIFO format.
 Live candidate4862/sink4948 connected through ADB with existing phone media.
 Native output480x800/pool9MiB confirmed, sustained LPCM writes, FIFO full0.
 Successful-commit diagnostics show genuine gaps up to1266585us, errors0;
