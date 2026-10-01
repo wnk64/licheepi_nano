@@ -8,9 +8,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #define VIDEO_QUEUE_BYTES (128u * 1024u)
+#define VIDEO_BLOCK_BYTES 4096u
+#define VIDEO_COALESCE_NS 3000000L
 struct video_output {
     uint8_t queue[VIDEO_QUEUE_BYTES];
     size_t head, count, peak, inflight;
@@ -21,17 +24,46 @@ struct video_output {
     pthread_t thread;
     unsigned long long submitted, written, discarded;
     unsigned long full;
+    int coalesce;
+    unsigned long write_calls, wake_signals, coalesce_blocks;
 };
 static struct video_output *output;
 
 static void *output_thread(void *opaque)
 {
     struct video_output *s = opaque;
-    uint8_t block[4096];
+    uint8_t block[VIDEO_BLOCK_BYTES];
     while (!atomic_load(&s->stop)) {
         pthread_mutex_lock(&s->lock);
         while (!s->count && !atomic_load(&s->stop))
             pthread_cond_wait(&s->ready, &s->lock);
+        if (s->coalesce && s->count && s->count < sizeof(block) &&
+            !atomic_load(&s->stop)) {
+            struct timespec deadline;
+            if (clock_gettime(CLOCK_MONOTONIC, &deadline) != 0) {
+                s->failed = errno;
+                atomic_store(&s->stop, 1);
+            } else {
+                deadline.tv_nsec += VIDEO_COALESCE_NS;
+                if (deadline.tv_nsec >= 1000000000L) {
+                    deadline.tv_sec++;
+                    deadline.tv_nsec -= 1000000000L;
+                }
+                s->coalesce_blocks++;
+                while (s->count < sizeof(block) && !atomic_load(&s->stop)) {
+                    int rc = pthread_cond_timedwait(&s->ready, &s->lock, &deadline);
+                    if (rc == ETIMEDOUT) break;
+                    if (rc != 0) {
+                        s->failed = rc;
+                        atomic_store(&s->stop, 1);
+                    }
+                }
+            }
+        }
+        if (atomic_load(&s->stop)) {
+            pthread_mutex_unlock(&s->lock);
+            break;
+        }
         size_t bytes = s->count < sizeof(block) ? s->count : sizeof(block);
         size_t first = VIDEO_QUEUE_BYTES - s->head;
         if (first > bytes) first = bytes;
@@ -47,6 +79,7 @@ static void *output_thread(void *opaque)
             if (n > 0) {
                 off += (size_t)n;
                 pthread_mutex_lock(&s->lock);
+                s->write_calls++;
                 s->written += (size_t)n;
                 s->inflight -= (size_t)n;
                 pthread_mutex_unlock(&s->lock);
@@ -87,7 +120,21 @@ int wfd_video_start(int fd)
     if (pthread_mutex_init(&s->lock, NULL)) {
         close(s->fd); free(s); return -1;
     }
-    if (pthread_cond_init(&s->ready, NULL)) {
+    const char *env = getenv("WFD_VIDEO_COALESCE");
+    s->coalesce = env && strcmp(env, "1") == 0;
+    pthread_condattr_t cond_attr;
+    int cond_initialized = 0, cond_error = 0;
+    if (s->coalesce) {
+        cond_error = pthread_condattr_init(&cond_attr);
+        if (!cond_error) {
+            cond_initialized = 1;
+            cond_error = pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
+        }
+    }
+    if (!cond_error)
+        cond_error = pthread_cond_init(&s->ready, s->coalesce ? &cond_attr : NULL);
+    if (cond_initialized) pthread_condattr_destroy(&cond_attr);
+    if (cond_error) {
         pthread_mutex_destroy(&s->lock); close(s->fd); free(s); return -1;
     }
     pthread_attr_t attr;
@@ -102,6 +149,8 @@ int wfd_video_start(int fd)
     }
     output = s;
     fprintf(stderr, "FIFO async: queue=%u block=4096 stack=65536 full=fail\n", VIDEO_QUEUE_BYTES);
+    fprintf(stderr, "FIFO coalesce: enabled=%d threshold=%u wait_us=%ld monotonic=1\n",
+            s->coalesce, VIDEO_BLOCK_BYTES, s->coalesce ? VIDEO_COALESCE_NS / 1000 : 0L);
     return 0;
 }
 
@@ -110,6 +159,7 @@ int wfd_video_push(const void *data, size_t bytes)
     struct video_output *s = output;
     if (!s) return -1;
     pthread_mutex_lock(&s->lock);
+    size_t previous_count = s->count;
     int error = s->failed ? s->failed : (atomic_load(&s->stop) ? ECANCELED : 0);
     if (!error && bytes > VIDEO_QUEUE_BYTES - s->count) {
         s->full++;
@@ -126,7 +176,11 @@ int wfd_video_push(const void *data, size_t bytes)
         s->submitted += bytes;
         if (s->count > s->peak) s->peak = s->count;
     }
-    pthread_cond_signal(&s->ready);
+    if (!s->coalesce || error || !previous_count ||
+        (previous_count < VIDEO_BLOCK_BYTES && s->count >= VIDEO_BLOCK_BYTES)) {
+        s->wake_signals++;
+        pthread_cond_signal(&s->ready);
+    }
     pthread_mutex_unlock(&s->lock);
     if (error) errno = error;
     return error ? -1 : 0;
@@ -140,6 +194,8 @@ int wfd_video_report(void)
     fprintf(stderr, "FIFO async stats: submitted=%llu written=%llu queue=%zu inflight=%zu peak=%zu full=%lu failed=%d discarded=%llu\n",
             s->submitted, s->written, s->count, s->inflight, s->peak,
             s->full, s->failed, s->discarded);
+    fprintf(stderr, "FIFO IPC: writes=%lu wake_signals=%lu coalesce_blocks=%lu enabled=%d\n",
+            s->write_calls, s->wake_signals, s->coalesce_blocks, s->coalesce);
     int failed = s->failed;
     pthread_mutex_unlock(&s->lock);
     return failed;
