@@ -1,4 +1,14 @@
 ## 2026-10-01 / planned / command-line-only CMA20 trial
+Boot source exact equality/standard header+payload CRC validated; mkimage
+SOURCE_DATE_EPOCH=1789401188 reproduces old89f5aa3504a1f95b9aa9dc3df824e37d
+byte-for-byte. Candidateed5245344b192cfe271d670c7d5f594c, text only24M->20M,
+image name identifies20M, original timestamp retained for reproducibility.
+Sourcef3c9f74 inspector; .cmd kernel ignore corrected with exact force-add,
+4ca2d17 tracks both source texts and four CRC/source tests (host+VM pass).
+Target only FATboot.scr; rollback313bytes at
+/root/aic_miracast/candidates/cma20_20261001/rollback/boot.scr.before.
+No zImage/DTB/modules rebuild or replacement. Planned verified FAT copy/sync/
+unmount, graceful stream stop, hub5s off/reopened console, then identicalAV.
 User requests CMA20 and further CPU/cadence optimization; separate switches.
 Original tree base5f850b1/tagkernel-before-cma20-20261001, branch
 candidate/cma20-bootargs-20261001. Existing complete fbdev_single candidate
