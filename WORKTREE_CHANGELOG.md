@@ -90,3 +90,17 @@ Real phone reconnect, LPCM headers, audible output, sync, RAM and stability
 are unverified. Three complete cold boot cycles remain 0/3, no stable push.
 Helper final diagnostic failed because ip is absent after launch; processes
 and artifact hashes independently verified. No launch failure inferred.
+# 2026-10-01 planned: RTP-scoped FIFO write batching
+Base f6bd85a/source1e92840, sink2abf0610, exact original source/build retained.
+Original tree branch candidate/rtp-fifo-batch-20261001, tag
+sink-audio-before-rtp-batch-20261001; archive miracast_rtp_batch_20261001/before.
+User requests optimization after audible success with intermittent stalls.
+10.62s diagnosis: CPU92% busy, board UDP RcvbufErrors+565; not WLAN proof.
+Change only sink H264 output batching within each RTP packet, <=RTP_MAX
+static scratch bytes; flush immediately per packet, no interpacket delay.
+Keep PES extraction byte-identical, audio worker, RTSP, driver/player/CMA
+and resolution unchanged. Test exact bytes across mixed TS/headers/tails,
+write-count reduction, EPIPE and invalid RTP under ASan/UBSan; mock M1-M7.
+Retain old board audio sink/watcher; runtime switch requires reconnect.
+Shared dependencies: FIFO/player scheduling, audio delivery, network receive.
+Acceptance: real A/V/counters/RAM and three cold cycles pending0/3.
