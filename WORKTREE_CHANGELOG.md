@@ -93,6 +93,63 @@ and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
 ## 2026-10-01 planned: loss-triggered rate-limited IDR recovery
+HCI down/up + paired connect restored full audio on baseline99a700f8:
+player886/sink930 wrote>10MB PCM, HCI TX increased; exact driver/firmware
+cause remains unknown, interface reset is a runtime recovery, not source fix.
+Baseline normalized samples14.10/12.50s:6.026/5.712Mbps, CPU91.23/86.20%,
+local drops102/210. CMAfree4228KiB includes dynamic movable/cache usage;
+no leak conclusion from that metric alone. Same HCI init applied to next test.
+IDR full-A/V player1308/watch1309/sink1354, WFD_LOSS_IDR1, sink273b1d0a,
+same idle-player0bd4666c/native80060/pool9/rotate90; phone original task.
+Actual source accepted recovery CSeq176/177/178 and later351/691..695
+with200OK; counters reached592 requests, missing13483==socket_missing13483,
+duplicate/reordered0. Decoded keyframes increased (r3=215 at114688calls).
+Audio written194241024bytes at103466PES, async video written=submitted,
+peak32496/full0; continuous audio now real, not the earlier failed-audio test.
+Full samples13.07/12.00/13.27s:6.120/5.066/5.771Mbps, CPU96.69/91.68/92.96%,
+drops328/161/259, RAM~17.8..18.0MiBavailable/CMAfree6164KiB. Different
+video phases prevent strict A/B %; loss not reduced, possible CPU cost.
+Decision: protocol recovery verified on phone, full stall improvement pending.
+Do not call video-clock-late equivalent to actual frozen-display duration:
+raw FIFO synthesizes PTS60 even with variable source cadence. Next measure
+successful frame-output gaps and reduce receive/IPC overhead before accept.
+Current full-A/V stream remains active; source/rootfs/module unchanged other
+than isolated candidate/helper. HCI recovery and supervisor restart documented,
+all temporary command wrappers removed. Threecold0/3, no stable push.
+Isolated1s defaultPCM probe was interrupted after3s (rc1), HCI TX+15575bytes/
+ACL+45; not proof zero transmission, but didn't complete normally. timeout
+utility absent, first attempt didn't run; owned-PID bounded wrapper used.
+Verified BlueALSA252 executable beforeTERM, supervisor207 restored32232;
+paired session recreated. IDR candidate rolled back to99a700f8, same idle
+player0bd4666c; player32260/sink32302 still failed audio after383616bytes.
+Confirms issue not dependent on IDR code. Phone Bluetooth reported state
+disconnected (speaker name cached), no evidence competing phone A2DP.
+UARTserial physical1C25800 RTS|CTS, HCIerrors0; observations not root cause.
+Plan standard hci0 down/up and paired reconnect only to clear controller
+session state, no module/firmware/kernel/source changes. Preserve current
+video-only cast while reset; full A/V test requires reopening audio afterward.
+Paired DeviceDisconnect/Connect succeeded but thirdcastplayer30929/sink30975
+audio still failed after180224bytes. /run/audio-bluealsa.log contains BT
+socketETIMEDOUT followed by transportRelease UnknownObject. This indicates
+failure below sink PCM; HCIerrors0/Connectedtrue are insufficient health.
+IDR remains unexercised (requests0/loss0 after audio disabled). Plan isolated
+one-second ALSA S16_LE silence with6s timeout, compare HCI counters/backend
+errors, video retained; no phone/media/driver/service changes. If backend
+fails independently, restore baseline sink and diagnose Bluetooth separately
+before judging recovery candidate, not accept video-only as full goal.
+Initial deployment was blocked because old player still exiting; PowerShell
+then incorrectly proceeded to phone connect, which timed out. No candidate
+started then. Wait-for-old-exit + fail-fast host checks added; old process
+later proven gone. Deployed273b1d0a/record47db517, firstplayer29845/sink29892,
+then same-version retryplayer30386/sink30431. Both audio attempts failed
+after~76KiB with BlueALSA FIFO EPIPE/ALSAENODEV; audio output disabled.
+Video still runs, local socketdrops0, recoveryrequests0: invalid A/V comparison,
+not evidence IDR fixed stalls. Before full-A/V samples~6Mbps/CPU90%/+120,+90
+drop windows; failed-audio after samples3.5..6Mbps/CPU49..82%/drops0.
+BlueZ DeviceConnectedtrue, BlueALSA PCMsource48k2ch visible, HCIerrors0;
+does not prove usable transport. Runtime plan reconnect only paired speaker
+12:11:71:41:9C:4A to recreate transport, then reopen same cast. No service,
+driver, kernel, phone media/orientation/loop changes. Preserve failed logs.
 Sourceb85e58e/plan7ccd593; policy wrap/SSRC/cooldown/100k packets and
 RTP byte/EPIPE sanitizer tests pass; mock800 M1-M7 and gap+source200+
 duplicate/reorder/cooldown tests pass. Two ARM builds identical
