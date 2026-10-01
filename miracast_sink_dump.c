@@ -27,6 +27,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "wfd_lpcm.h"
+#include "wfd_video.h"
 
 #define RTSP_PORT 7236
 #define RTP_PORT 1028
@@ -45,6 +46,7 @@ static unsigned long g_video_writes;
 static unsigned long long g_write_us, g_write_max_us, g_receive_gap_us;
 static unsigned long g_write_over_5ms, g_write_over_20ms;
 static uint32_t g_socket_drops;
+static int g_async_video;
 static unsigned long long monotonic_us(void)
 {
     struct timespec ts;
@@ -420,7 +422,14 @@ static void process_rtp_packet(const uint8_t *pkt, int len)
     /* Flush per RTP packet, never wait for another packet to fill a buffer. */
     if (g_video_batch_bytes && !g_stop) {
         unsigned long long started = monotonic_us();
-        size_t wrote = fwrite(g_video_batch, 1, g_video_batch_bytes, stdout);
+        size_t wrote;
+        if (g_async_video) {
+            wrote = wfd_video_push(g_video_batch, g_video_batch_bytes) == 0 ? g_video_batch_bytes : 0;
+            if (!wrote)
+                fprintf(stderr, "FIFO async failed: %s; end candidate without corrupting H264\n", strerror(errno));
+        } else {
+            wrote = fwrite(g_video_batch, 1, g_video_batch_bytes, stdout);
+        }
         unsigned long long elapsed = monotonic_us() - started;
         g_write_us += elapsed;
         if (elapsed > g_write_max_us)
@@ -483,6 +492,13 @@ int main(int argc, char **argv)
     signal(SIGINT, on_signal);
     signal(SIGTERM, on_signal);
     signal(SIGPIPE, SIG_IGN);
+    const char *async_enable = getenv("WFD_VIDEO_ASYNC");
+    if (async_enable && strcmp(async_enable, "1") == 0) {
+        if (wfd_video_start(fileno(stdout)) != 0)
+            die("FIFO async initialization failed");
+        g_async_video = 1;
+        atexit(wfd_video_stop);
+    }
 
     const char *audio_enable = getenv("WFD_AUDIO_ENABLE");
     if (audio_enable && strcmp(audio_enable, "1") == 0) {
@@ -676,6 +692,8 @@ int main(int argc, char **argv)
                 if ((rtp_packets & 0xfff) == 0) {
                     wfd_audio_report();
                     report_delivery();
+                    if (wfd_video_report())
+                        g_stop = 1;
                 }
                 rtp_bytes += (unsigned long long)n;
                 if (!initial_idr_sent && rtp_packets >= 12) {
@@ -689,6 +707,7 @@ int main(int argc, char **argv)
     }
 
     fflush(stdout);
+    wfd_video_stop();
     report_delivery();
     fprintf(stderr,
             "final stats: rtp_packets=%lu rtp_bytes=%llu ts_packets=%lu video_ts_packets=%lu h264_bytes=%llu video_writes=%lu\n",
