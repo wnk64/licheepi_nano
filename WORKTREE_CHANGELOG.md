@@ -92,6 +92,23 @@ Helper final diagnostic failed because ip is absent after launch; processes
 and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
+## 2026-10-01 planned: loss-triggered rate-limited IDR recovery
+Baseeab7388/async99a700f8 exactly rebuilt before edit; complete source,
+Makefile/dependencies/bundle/binary in miracast_loss_idr_20261001/before.
+Original tree branchcandidate/loss-idr-recovery-20261001, no worktree.
+Hypothesis: lost reference frames stall display until next source IDR;
+source only receives initial IDR request today. Opt-in WFD_LOSS_IDR=1:
+track RTPseq/SSRC, trigger on forward gaps or socket RXoverflow, maximum
+one request per1000000us including initial request cooldown. Duplicate/
+old packets do not advance high-water mark; wrap/SSRC restart accounted.
+No H264 filtering/drop/rescale, no queue/driver/player/kernel change; keep
+idle-player0bd4666c and user landscape/loop video for controlled comparison.
+Tests pure policy wrap/duplicate/reorder/SSRC/overflow/cooldown, sanitizers,
+mock M1-M7+RTP gap/source200 responses; final double ARM build. Live verify
+source replies, decoder-keyframe counts, stalls/drop/CPU/RAM/bandwidth.
+Recovery does not reduce network loss and can increase I-frame traffic;
+rollback old99a700f8 if regression. Threecold0/3, no stable/push claim.
+
 ## 2026-10-01 planned: unattended cast-only session and read-only sampler
 Plan a1747b7/fix7f9f600/tools e6d2840 on candidate/cast-auto-test-20261001;
 CLI connect/disconnect/status tested on phone dda57287, same target, BACK
