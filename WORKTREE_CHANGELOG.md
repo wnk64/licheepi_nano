@@ -93,6 +93,14 @@ and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
 ## 2026-10-01 planned: unattended cast-only session and read-only sampler
+Plan a1747b7/fix7f9f600/tools e6d2840 on candidate/cast-auto-test-20261001;
+CLI connect/disconnect/status tested on phone dda57287, same target, BACK
+restores original media task. HostPython>=3.6 help checks and two sampler
+fixture/delta/socket-identity unit tests pass. Corrected live sampler reports
+actual inode161375, PIDs26339/26383, two+five windows collected without
+restarting/interrupting stream. Source helpers are Windows-side tools only,
+not board startup changes; keep for following goal turns. Complete bundle
+at /home/wnk/F1C200S_archives/cast_auto_test_20261001/candidate/source.bundle.
 Host tools require Python>=3.6 (f-string syntax); use existing WindowsPython,
 not VM16.04 Python3.5. First help check on VM failed before source commit;
 do not install or mislabel that as app/build failure. Local host help/tests
