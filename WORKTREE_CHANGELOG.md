@@ -1,5 +1,22 @@
 # Worktree Change Log
 
+## 2026-10-01 / planned / bounded WFD LPCM to ALSA default
+Base67ad37c/b96fa528, tag sink-hh800-before-audio-20261001, complete source
+and binary archived under miracast_audio_20261001/before; original tree kept.
+Existing M4 already selects LPCM48k stereo; reuse current video TS/FIFO path.
+Add bounded TS/PES LPCM demux (PID1100, 65541byte PES ceiling) and separate
+ALSA nonblocking worker (16KiB/85ms PCM ring, 64KiB stack,40ms requested buffer).
+PCM framing verified against AOSP ESQueue::dequeueAccessUnitPCMAudio:
+a0/numAUs/reserved/11, 80 samples per AU, stereo16bit big endian.
+ALSA plug performs endian conversion; default selects connected Wt-070 A2DP.
+Opt-in WFD_AUDIO_ENABLE=1, no audio files/FIFO backlog/no AAC decoder; drop
+old audio on overflow rather than block video. Stop/drop instead of drain.
+Tests: all184 header split points, duplicates/CC loss/resync/TEI/invalid
+format/fuzz, ASan/UBSan and ALSA-null threaded lifecycle; unchanged M1-M7.
+No kernel/DTB/CMA9MiB pool/rotation/driver/audio-route changes. Live source
+has already sent TEARDOWN, sink0; no agent stop/reboot. Need phone reconnect
+and audible/sync/memory/long-run verification; three cold cycles pending0/3.
+
 Worktree: /home/wnk/LicheePi_Nano/third_party/lazycast_host_20260721
 Component: Miracast sink
 Base: 4f4a2cc plus previously untracked miracast_sink_dump.c

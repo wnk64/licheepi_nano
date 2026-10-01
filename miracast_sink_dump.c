@@ -26,6 +26,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+#include "wfd_lpcm.h"
 
 #define RTSP_PORT 7236
 #define RTP_PORT 1028
@@ -354,8 +355,10 @@ static void process_ts_packet(const uint8_t *ts)
 
     int payload_start = !!(ts[1] & 0x40);
     int pid = ((ts[1] & 0x1f) << 8) | ts[2];
-    if (pid != VIDEO_PID)
+    if (pid != VIDEO_PID) {
+        wfd_audio_ts(ts);
         return;
+    }
     g_video_ts_packets++;
 
     int afc = (ts[3] >> 4) & 0x03;
@@ -428,6 +431,15 @@ int main(int argc, char **argv)
     signal(SIGINT, on_signal);
     signal(SIGTERM, on_signal);
     signal(SIGPIPE, SIG_IGN);
+
+    const char *audio_enable = getenv("WFD_AUDIO_ENABLE");
+    if (audio_enable && strcmp(audio_enable, "1") == 0) {
+        const char *device = getenv("WFD_AUDIODEV");
+        if (wfd_audio_start(device && *device ? device : "default") == 0)
+            atexit(wfd_audio_stop);
+        else
+            fprintf(stderr, "LPCM initialization failed; retain video-only mode\n");
+    }
 
     int rtsp = socket(AF_INET, SOCK_STREAM, 0);
     if (rtsp < 0)
@@ -590,6 +602,8 @@ int main(int argc, char **argv)
                 process_rtp_packet(pkt, (int)n);
                 last_packet = time(NULL);
                 rtp_packets++;
+                if ((rtp_packets & 0xfff) == 0)
+                    wfd_audio_report();
                 rtp_bytes += (unsigned long long)n;
                 if (!initial_idr_sent && rtp_packets >= 12) {
                     fprintf(stderr, "request initial IDR after %lu RTP packets\n",
