@@ -91,7 +91,8 @@ static void* drm_warpper_display_thread(void *arg){
                         || item->mount.type == DRM_SRGN_ATOMIC_COMMIT_MOUNT_FB_YUV){
                         if(layer->curr_item){
                             // 如果程序终止 对端consumer可能已经退出 导致这里卡死。
-                            spsc_bq_push(&layer->free_queue, layer->curr_item);
+                            if (spsc_bq_push(&layer->free_queue, layer->curr_item) != 0)
+                                free(layer->curr_item);
                         }
                         layer->curr_item = item;
                     }
@@ -268,18 +269,35 @@ int drm_warpper_init(drm_warpper_t *drm_warpper){
 }
 
 int drm_warpper_destroy(drm_warpper_t *drm_warpper){
-    drmModeFreeConnector(drm_warpper->conn);
-    drmModeFreePlaneResources(drm_warpper->plane_res);
-    drmModeFreeResources(drm_warpper->res);
-    close(drm_warpper->fd);
-    atomic_store(&drm_warpper->thread_running, 0);
+    int was_running = atomic_exchange(&drm_warpper->thread_running, 0);
+    /* Wake a worker blocked returning frames before waiting for it. */
+    for(int i = 0; i < 4; i++){
+        layer_t *layer = &drm_warpper->layer[i];
+        if (layer->used) {
+            spsc_bq_close(&layer->display_queue);
+            spsc_bq_close(&layer->free_queue);
+        }
+    }
+    if (was_running) {
+        log_info("wait for display thread to finish");
+        pthread_join(drm_warpper->display_thread, NULL);
+        log_info("display thread finished");
+    }
     for(int i = 0; i < 4; i++){
         drm_warpper_destroy_layer(drm_warpper, i);
     }
-    log_info("wait for display thread to finish");
-    pthread_join(drm_warpper->display_thread, NULL);
-    log_info("display thread finished");
-
+    if (drm_warpper->conn)
+        drmModeFreeConnector(drm_warpper->conn);
+    if (drm_warpper->plane_res)
+        drmModeFreePlaneResources(drm_warpper->plane_res);
+    if (drm_warpper->res)
+        drmModeFreeResources(drm_warpper->res);
+    drm_warpper->conn = NULL;
+    drm_warpper->plane_res = NULL;
+    drm_warpper->res = NULL;
+    if (drm_warpper->fd >= 0)
+        close(drm_warpper->fd);
+    drm_warpper->fd = -1;
 
     return 0;
 }
@@ -410,6 +428,14 @@ int drm_warpper_destroy_layer(drm_warpper_t *drm_warpper,int layer_id){
     if(!layer->used){
         return 0;
     }
+    /* Producers and the display worker must be joined before destroying a layer. */
+    drm_warpper_queue_item_t *item;
+    while (spsc_bq_try_pop(&layer->display_queue, (void **)&item) == 0)
+        free(item);
+    while (spsc_bq_try_pop(&layer->free_queue, (void **)&item) == 0)
+        free(item);
+    free(layer->curr_item);
+    layer->curr_item = NULL;
     spsc_bq_destroy(&layer->display_queue);
     spsc_bq_destroy(&layer->free_queue);
     layer->used = false;

@@ -1,5 +1,23 @@
 # Worktree Change Log
 
+## 2026-10-01 / planned / ordered display-worker teardown
+Original player tree /home/wnk/f1c200s_display_480x800_candidate_20260914,
+base7263725/tagplayer-before-lifecycle-20261001, branchcandidate/player-lifecycle-20261001.
+Full source/object snapshot and bundle at player_lifecycle_20261001/before;
+make-B/strip exactly reproduces1259e0f3. Preserve dirty generated objects/boot.
+Old mixed-object dtsview11386ab exits139 on SIGINT; current consistent1259e0f3
+same MP4/SIGINT exits0. Existing drm destroy still closes fd/resources and
+destroys live queues before joining its worker, with possible blocked return.
+Change driver/drm_warpper.c only: stopflag/queueclose -> join -> drain metadata
+and destroy queues -> free DRM resources -> close fd, idempotent destruction.
+No header/layout change, decode/rotation/frame ownership/protocol/kernel unchanged.
+Add mocked lifecycle test with a full return queue, delayed/blocking worker,
+ASan/UBSan/leak detection, repeat destroy; baseline must fail ordering assertion.
+Build consistent objects using existing player Makefile and Buildroot toolchain;
+deploy isolated candidate, retain1259e0f3/11386ab. Board tests SIGINT/SIGTERM,
+repeat MP4 rotation and FIFO/raw shutdown, returncodes/logs/memory. Pending,
+no stable acceptance or GitHub push; full cold/regression gate remains0/3.
+
 ## 2026-09-30 / planned / opt-in private CMA arena
 Historical provenance resolved: reconstruct main.o using drm_warpper.h from
 3993c9b parent; compile all other sources with current header. Exact ELF MD5
