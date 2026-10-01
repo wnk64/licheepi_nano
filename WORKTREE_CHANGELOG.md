@@ -92,6 +92,22 @@ Helper final diagnostic failed because ip is absent after launch; processes
 and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
+## 2026-10-01 planned: bounded asynchronous FIFO delivery
+Base7bc75cf/source548f939/f8a1058c and complete archive retained.
+Original branch candidate/async-fifo-20261001, no new worktree. Hypothesis:
+FIFO writes in receive loop delay audio/RTP; independent output worker can
+absorb bursts while preserving exact stream bytes. Opt-in WFD_VIDEO_ASYNC=1.
+128KiB ring +4096byte in-flight block, 64KiB thread stack; nonblocking write
+and50ms poll, cancellable stop/join. Queue full causes explicit candidate
+failure, never silently discard H264 fragments. Stop may discard queued
+tail after disconnect; report it. No video file/unbounded cache added.
+Keep800/native90/player/CMA/audio/driver/sysctl unchanged, diagnostic receive
+counters and360448socket capacity retained for same-base comparison.
+Tests byte order/wrap/slow-consumer/full/EPIPE/idle-stop/full-pipe-stop,
+ASan/UBSan/leaks and800RTSP; no acceptance from tests. Live reconnect needed,
+monitor queue peak/drop/CPU/RAM/A/V delay. Rollback sink-burstf8a1058c.
+Shared FIFO/player/network/audio scheduling; threecold0/3, no stable push.
+
 ## 2026-10-01 planned: observe live FIFO/receive stalls
 Observed live: phone TEARDOWN/sink0, 21822RTP packets, socket drops1550;
 receive gap max108226us. FIFO single-write max19838us, no >20ms, interval
