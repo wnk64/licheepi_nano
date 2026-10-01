@@ -8,6 +8,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
+#include <poll.h>
+#include <sys/stat.h>
 #include <alsa/asoundlib.h>
 #include <CdxParser.h>
 #include <fdk-aac/aacdecoder_lib.h>
@@ -639,6 +641,16 @@ parser_exit:
     return NULL;
 }
 
+static int mp_raw_should_stop(mediaplayer_t *mp)
+{
+    int stop;
+    pthread_rwlock_rdlock(&mp->thread.rwlock);
+    stop = mp->thread.requested_stop ||
+           (mp->thread.state & (MEDIAPLAYER_PARSER_ERROR | MEDIAPLAYER_DECODER_ERROR));
+    pthread_rwlock_unlock(&mp->thread.rwlock);
+    return stop;
+}
+
 /* raw thread: read Annex-B H.264 from file/FIFO and feed decoder */
 static void *mp_raw_h264_thread(void *param)
 {
@@ -650,6 +662,8 @@ static void *mp_raw_h264_thread(void *param)
     int stream_cap = MP_RAW_BUFFER_MAX;
     int64_t pts = 0;
     int64_t pts_step = mp_frame_interval_us(mp);
+    struct stat input_stat;
+    int input_fifo;
 
     log_info("==> mp_raw_h264 Thread Started!");
 
@@ -662,7 +676,7 @@ static void *mp_raw_h264_thread(void *param)
         goto raw_exit;
     }
 
-    fd = open(mp->video_path, O_RDONLY);
+    fd = open(mp->video_path, O_RDONLY | O_NONBLOCK);
     if (fd < 0) {
         log_error("open raw h264 failed: %s errno=%d", mp->video_path, errno);
         pthread_rwlock_wrlock(&mp->thread.rwlock);
@@ -670,19 +684,19 @@ static void *mp_raw_h264_thread(void *param)
         pthread_rwlock_unlock(&mp->thread.rwlock);
         goto raw_exit;
     }
+    if (fstat(fd, &input_stat) != 0) {
+        log_error("stat raw h264 failed errno=%d", errno);
+        pthread_rwlock_wrlock(&mp->thread.rwlock);
+        mp->thread.state |= MEDIAPLAYER_PARSER_ERROR;
+        pthread_rwlock_unlock(&mp->thread.rwlock);
+        goto raw_exit;
+    }
+    input_fifo = S_ISFIFO(input_stat.st_mode);
 
     while (1) {
-        int state;
-        int requested_stop;
         ssize_t nread;
 
-        pthread_rwlock_rdlock(&mp->thread.rwlock);
-        state = mp->thread.state;
-        requested_stop = mp->thread.requested_stop;
-        pthread_rwlock_unlock(&mp->thread.rwlock);
-
-        if (requested_stop || (state & (MEDIAPLAYER_PARSER_ERROR |
-                                        MEDIAPLAYER_DECODER_ERROR))) {
+        if (mp_raw_should_stop(mp)) {
             break;
         }
 
@@ -692,6 +706,27 @@ static void *mp_raw_h264_thread(void *param)
         }
 
         nread = read(fd, stream_buf + stream_len, MP_RAW_READ_CHUNK);
+        if ((nread < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) ||
+            (nread == 0 && input_fifo)) {
+            struct pollfd wait_fd = { .fd = fd, .events = POLLIN };
+            /* A FIFO with no writer must stay cancellable, not block in open/read. */
+            int ready = poll(&wait_fd, 1, 100);
+            if ((ready < 0 && errno != EINTR) ||
+                (ready > 0 && (wait_fd.revents & (POLLERR | POLLNVAL)))) {
+                log_error("poll raw h264 failed errno=%d revents=%x", errno,
+                          wait_fd.revents);
+                pthread_rwlock_wrlock(&mp->thread.rwlock);
+                mp->thread.state |= MEDIAPLAYER_PARSER_ERROR;
+                pthread_rwlock_unlock(&mp->thread.rwlock);
+                break;
+            }
+            if (ready > 0 && (wait_fd.revents & POLLHUP) &&
+                !(wait_fd.revents & POLLIN)) {
+                log_info("raw h264 input eos");
+                break;
+            }
+            continue;
+        }
         if (nread < 0) {
             if (errno == EINTR) {
                 continue;
@@ -774,6 +809,8 @@ static void *mp_raw_h264_thread(void *param)
                 int ret;
                 VideoStreamDataInfo dataInfo;
 
+                if (mp_raw_should_stop(mp))
+                    goto raw_done;
                 validSize = VideoStreamBufferSize(decoder, 0) - VideoStreamDataSize(decoder, 0);
                 if (packet_len > validSize) {
                     if (++trytime >= 2000) {
@@ -827,7 +864,7 @@ static void *mp_raw_h264_thread(void *param)
     }
 
 raw_done:
-    if (stream_len > 4) {
+    if (stream_len > 4 && !mp_raw_should_stop(mp)) {
         int validSize = VideoStreamBufferSize(decoder, 0) - VideoStreamDataSize(decoder, 0);
         if (stream_len <= validSize) {
             char *buf0 = NULL;

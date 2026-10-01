@@ -17,6 +17,13 @@ Build consistent objects using existing player Makefile and Buildroot toolchain;
 deploy isolated candidate, retain1259e0f3/11386ab. Board tests SIGINT/SIGTERM,
 repeat MP4 rotation and FIFO/raw shutdown, returncodes/logs/memory. Pending,
 no stable acceptance or GitHub push; full cold/regression gate remains0/3.
+Stage1 source43d19d0/candidatec4efe667: ASan/UBSan50 cases pass, baseline
+negativecontrol aborts134; two ARM builds identical. Board4 MP4 INT/TERM exits0,
+but idle FIFO INT hangs in blocking open; own candidate forcibly stopped137,
+no baseline target overwritten, stage1 not accepted for raw live use.
+Follow-up same shutdown hypothesis: raw reader O_NONBLOCK plus100ms poll,
+preserve regular-file EOF and FIFO writer-close EOF; check stop/error while
+waiting for decoder stream space. No data format/frame parsing change.
 
 ## 2026-09-30 / planned / opt-in private CMA arena
 Historical provenance resolved: reconstruct main.o using drm_warpper.h from
