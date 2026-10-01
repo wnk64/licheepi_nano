@@ -93,6 +93,22 @@ and artifact hashes independently verified. No launch failure inferred.
 # 2026-10-01 planned: RTP-scoped FIFO write batching
 
 ## 2026-10-01 planned: observe live FIFO/receive stalls
+Observed live: phone TEARDOWN/sink0, 21822RTP packets, socket drops1550;
+receive gap max108226us. FIFO single-write max19838us, no >20ms, interval
+write totals sum12.97s. Cannot establish multi-second FIFO blockage from this.
+Pool peak8437760/cap9437184/fallback0/live0, clean lifecycle, no OOM.
+
+## 2026-10-01 planned: bounded per-socket receive burst capacity
+Base6c64cc1/dc42acc/f2d95119, exact source/build archived. Original tree
+branch candidate/rtp-receive-burst-20261001, no new worktree. Only set
+SO_RCVBUF requested180224 before bind; board default/max180224 and Linux
+doubles explicit request, expected effective360448 (verify getsockopt).
+No sysctl change; kernel memory is demand-driven, not all upfront; cannot
+claim added video RAM equals requested socket-accounting bytes. Existing
+FIFO/audio queues unchanged; buffering may add latency when overloaded.
+Hypothesis: absorb ~100ms short stalls, not cure sustained CPU overload.
+Keep diagnostic counters and test same media drops/gap/CPU/RAM/audible sync.
+Rollback f2d95119 and observer watcher. Threecold0/3, pending, no stable push.
 Deployment now active after user disconnect: player19151/watch19152, waiting
 DHCP after7existing lines. Remote sinkf2d951196746d8ada684310d8c53f1f6,
 watcher53c679dbce544d9d1a7a8e998ae7f0ff verified. Existing WPA6960/DHCP12705
