@@ -1,6 +1,12 @@
 # Worktree Change Log
 
 ## 2026-10-01 planned / reproduce current cold-start runtime
+Follow-up for user-requested CMA20 trial: previous power transition retained
+COM4 handle and ClearCommError failed. Change only host hub_cycle.py:
+probe/close before OFF, fresh UART after ON, bounded read/open retries without
+repeating power commands. Four mock tests pass: order, read retry, busy console
+prevents power, missing OFF ack prevents ON. Actual UART capture still pending.
+Core sink/player/protocol/driver unchanged. Record source commit before use.
 Plan9de1e3e/sourcefed75fe, hosttimestampse2af014. Launcher MD5c312e492
 SSH verified, shell syntax passes, artifact-only preflight passes. Cold mode
 correctly refuses active runtime; /tmp confirmedtmpfs. Hot mode passes,
