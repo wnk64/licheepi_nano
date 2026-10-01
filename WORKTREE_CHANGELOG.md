@@ -10,7 +10,21 @@ CMA24MiB, core modules, AIC/player/audio routing remain unchanged.
 Core live module hashes match candidate; no blanket modules_install.
 Cold boot checks: test devices absent, Codec identity, BS SSH/15MHz,
 HCI/BlueALSA, RTC/I2C/display/SD; AIC discovery and phone casting pending.
-Decision: pending deployment, no stable acceptance or GitHub push.
+Deploy completed: FAT old/new hashes and unchanged DTB verified, unmounted;
+rollback zImage.before verified2d16ba197f384e0570071aabf2094c44.
+COM3 OFF/ON exact acknowledgements with3s off interval. USB re-enumeration
+interrupted serial capture, not boot. SSH restored automatically, kernel#249,
+boot53998af1-ced5-40c3-9dc9-5da44a843161, release5.7.1.
+All four test platform devices absent; Codec nowcard0. Boot available37040KiB
+vs old30264KiB, increase6776KiB; VmallocUsed7388->1052KiB.
+MemTotal54040->54052KiB; static size reduction is not managed-RAM increase.
+BS SSH restored; HCI UP RUNNING/errors0; real I2C drivers bound. AIC loader
+and idempotent memory hook passed with no test cards, wlan1 registered.
+Default Codec48kHz stereo1s silence playback passed, not audible acceptance.
+RTC read fails low-voltage/time-invalid; do not claim RTC retention passes.
+CMA24MiB/fbdev480x1600 unchanged. Phone casting and visual regression pending.
+Decision: deployed basic-check candidate, full cold-cycle acceptance0/3;
+no stable acceptance or GitHub push.
 
 ## 2026-10-01 / planned / remove unused test and foreign-platform drivers
 Base165df40, tagkernel-before-slim-20261001, complete source/config/artifacts
