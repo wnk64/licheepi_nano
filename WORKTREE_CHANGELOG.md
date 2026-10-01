@@ -1,4 +1,15 @@
 ## 2026-10-01 / planned / command-line-only CMA20 trial
+Deployment41485fc: FATboot.scr verifieded524534, zImagebffc71e8/DTB50499cb
+unchanged, sync/unmounted. Hub OFF2026-10-01T14:22:35.655579Z/ON14:22:40.903111Z,
+5.247532s interval;16127consolebytes/bootmarkertrue/3UARTreopens, no repeatpower.
+New boot31071e77-b129-46b2-a043-59b6eb863662, same5.7.1#250, cma=20M,
+CmaTotal20480KiB/nativefb480x800/BS SSH/defaultBT restored. AIC8d80->8d83/wlan1,
+GO5745/phoneADB connected, same590player/666sink/pool9MiB one ION allocation.
+Four12.71..13.26s samples CPU84.75..90.37%, localdrops0/0/0/0, availableRAM
+19312..19404KiB/CmaFree7912KiB. PCM73MB and video submissions keep advancing,
+FIFO full0/decoder commiterrors0/max166820us at later observation.
+Basic full-AV trial positive, not proof CMA reduced CPU or fully solved jitter;
+threecold/visual final acceptance pending. Keep20M for separate handoff test.
 Boot source exact equality/standard header+payload CRC validated; mkimage
 SOURCE_DATE_EPOCH=1789401188 reproduces old89f5aa3504a1f95b9aa9dc3df824e37d
 byte-for-byte. Candidateed5245344b192cfe271d670c7d5f594c, text only24M->20M,
